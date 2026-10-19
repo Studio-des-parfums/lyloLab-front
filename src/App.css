@@ -1,7 +1,10 @@
-.app {
-  max-width: 640px;
-  margin: 4rem auto;
-  padding: 0 1.5rem;
-  font-family: system-ui, sans-serif;
-  text-align: center;
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f4ec;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
 }

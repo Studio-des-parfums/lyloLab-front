@@ -1,0 +1,24 @@
+.radar-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.radar-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  touch-action: none;
+}
+
+.radar-point {
+  cursor: grab;
+}
+
+.radar-point:active {
+  cursor: grabbing;
+}
+
+.radar-label text {
+  user-select: none;
+}

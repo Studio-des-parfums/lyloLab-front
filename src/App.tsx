@@ -1,21 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import Sidebar from './components/Sidebar'
+import TopBar from './components/TopBar'
+import DashboardPlaceholder from './pages/DashboardPlaceholder'
+import MaterialsLibrary from './pages/MaterialsLibrary'
+import FormulationIntro from './pages/FormulationIntro'
+import FormulaBuilder from './pages/FormulaBuilder'
+import { FormulaProvider } from './context/FormulaContext'
 import './App.css'
 
 function App() {
-  const [apiStatus, setApiStatus] = useState<string>('...')
+  const [active, setActive] = useState('dashboard')
+  const [formulationStarted, setFormulationStarted] = useState(false)
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api`)
-      .then((res) => res.text())
-      .then(setApiStatus)
-      .catch(() => setApiStatus('API non disponible'))
-  }, [])
+  function handleSelect(key: string) {
+    if (key !== 'formulation') setFormulationStarted(false)
+    setActive(key)
+  }
+
+  function renderContent() {
+    switch (active) {
+      case 'materials':
+        return <MaterialsLibrary />
+      case 'formulation':
+        return formulationStarted ? (
+          <FormulaBuilder />
+        ) : (
+          <FormulationIntro onStart={() => setFormulationStarted(true)} />
+        )
+      default:
+        return <DashboardPlaceholder />
+    }
+  }
 
   return (
-    <div className="app">
-      <h1>Lylo Lab</h1>
-      <p>Statut API : {apiStatus}</p>
-    </div>
+    <FormulaProvider>
+      <div className="app-layout">
+        <Sidebar active={active} onSelect={handleSelect} />
+        <div className="app-main">
+          <TopBar />
+          {renderContent()}
+        </div>
+      </div>
+    </FormulaProvider>
   )
 }
 

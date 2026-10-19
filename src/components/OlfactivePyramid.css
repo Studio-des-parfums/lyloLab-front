@@ -1,0 +1,54 @@
+.pyramid-title {
+  font-size: 0.95rem;
+  margin: 0 0 0.9rem;
+  color: #2b2a28;
+}
+
+.pyramid-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pyramid-item {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.pyramid-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: #f5f0e2;
+  color: #a7813a;
+}
+
+.pyramid-content {
+  flex: 1;
+}
+
+.pyramid-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2b2a28;
+}
+
+.pyramid-duration {
+  font-weight: 400;
+  color: #8a8373;
+}
+
+.pyramid-ingredients {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: #6f6a5e;
+}

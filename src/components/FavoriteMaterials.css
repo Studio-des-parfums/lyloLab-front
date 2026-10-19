@@ -1,0 +1,73 @@
+.materials-title {
+  font-size: 0.95rem;
+  margin: 0 0 1rem;
+  color: #2b2a28;
+}
+
+.materials-list {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.material-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 64px;
+}
+
+.material-circle {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f5f0e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.material-remove {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #ece7dc;
+  color: #8a8373;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.material-remove:hover {
+  background: #e4583f;
+  border-color: #e4583f;
+  color: #fff;
+}
+
+.material-add {
+  border: 1.5px dashed #c9a24a;
+  color: #c9a24a;
+  background: #fff;
+}
+
+.material-name {
+  font-size: 0.72rem;
+  color: #5c5647;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

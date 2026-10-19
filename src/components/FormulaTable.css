@@ -1,0 +1,90 @@
+.formula-table-title {
+  font-size: 0.95rem;
+  margin: 0 0 0.9rem;
+  color: #2b2a28;
+}
+
+.formula-table-empty {
+  font-size: 0.8rem;
+  color: #8a8373;
+}
+
+.formula-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.formula-table th {
+  text-align: left;
+  color: #8a8373;
+  font-weight: 500;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ece7dc;
+}
+
+.formula-table td {
+  padding: 0.4rem 0;
+  color: #2b2a28;
+}
+
+.formula-table th:last-child,
+.formula-table td:last-child {
+  text-align: right;
+}
+
+.formula-table tfoot td {
+  border-top: 1px solid #ece7dc;
+  font-weight: 700;
+  padding-top: 0.5rem;
+}
+
+.formula-compliance-banner {
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.formula-compliance-banner p {
+  margin: 0;
+}
+
+.formula-compliance-banner p + p {
+  margin-top: 0.3rem;
+}
+
+.formula-compliance-banner-error {
+  background: #fbe9e4;
+  color: #a4442b;
+}
+
+.formula-compliance-banner-warning {
+  background: #fdf3e0;
+  color: #8a6416;
+}
+
+.formula-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.formula-status-ok {
+  color: #4a7a3a;
+}
+
+.formula-status-warning {
+  color: #b8860b;
+}
+
+.formula-status-violation {
+  color: #a4442b;
+  font-weight: 700;
+}
+
+.formula-row-violation td:first-child {
+  color: #a4442b;
+}

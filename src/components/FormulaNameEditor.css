@@ -1,0 +1,47 @@
+.formula-name-editor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.formula-name-input {
+  font-family: 'Georgia', serif;
+  font-size: 1.5rem;
+  color: #2b2a28;
+  border: none;
+  border-bottom: 2px solid #c9a24a;
+  background: transparent;
+  outline: none;
+  padding: 0 0 0.1rem;
+  min-width: 260px;
+}
+
+.formula-name-confirm {
+  border: none;
+  background: #c9a24a;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.formula-name-confirm:hover {
+  background: #b68e38;
+}
+
+button.edit-icon {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: #b7ae9a;
+  vertical-align: middle;
+}
+
+button.edit-icon:hover {
+  color: #c9a24a;
+}
