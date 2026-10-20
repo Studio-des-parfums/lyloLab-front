@@ -24,7 +24,7 @@ export default function FormulaTable() {
         </p>
       ) : (
         <>
-          {(compliance.bannedCount > 0 || compliance.recombiRisk) && (
+          {(compliance.bannedCount > 0 || compliance.overlappingAllergens.length > 0) && (
             <div className="formula-compliance-banner formula-compliance-banner-error">
               {compliance.bannedCount > 0 && (
                 <p>
@@ -32,10 +32,10 @@ export default function FormulaTable() {
                   automatiquement exclues de la formule.
                 </p>
               )}
-              {compliance.recombiRisk && (
+              {compliance.overlappingAllergens.length > 0 && (
                 <p>
-                  ⚠ Plusieurs matières présentent un risque de cumul d'allergènes
-                  (Recombi) — vérifiez la composition détaillée avant validation.
+                  ⚠ Cumul d'allergènes entre plusieurs matières :{' '}
+                  {compliance.overlappingAllergens.join(', ')}.
                 </p>
               )}
             </div>

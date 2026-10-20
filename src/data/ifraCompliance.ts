@@ -8,7 +8,7 @@ export interface MaterialCompliance {
   level: ComplianceLevel
   limitPercent: number | null
   isAllergen: boolean
-  hasRecombiRisk: boolean
+  allergens: string[]
   isBanned: boolean
   messages: string[]
 }
@@ -18,35 +18,32 @@ export interface FormulaCompliance {
   cappedCount: number
   bannedCount: number
   allergenCount: number
-  recombiRisk: boolean
+  /** EU allergens found in 2+ materials of this formula — a real, name-level cumulative-exposure risk. */
+  overlappingAllergens: string[]
 }
 
 export { parseIfraLimitPercent }
-
-function isDeclaredAllergen(euAllergen?: string): boolean {
-  if (!euAllergen) return false
-  const normalized = euAllergen.trim().toLowerCase()
-  return !(normalized === 'no' || normalized.startsWith('non'))
-}
-
-function hasRecombiRisk(recombi?: string): boolean {
-  if (!recombi) return false
-  return recombi.trim().toLowerCase() !== 'no'
-}
 
 /**
  * Reads the compliance outcome already enforced by `computeFormulaShares`
  * (which caps each material's dosage at its IFRA Cat.4 limit before it ever
  * reaches this table) and surfaces it for display: which materials were
- * capped, which are banned outright, and which carry an allergen /
- * cumulative-risk (Recombi) note.
+ * capped, which are banned outright, and which allergens they declare.
+ * Cumulative-exposure risk is computed from the structured `allergens` list
+ * on each material: any allergen shared by 2+ materials in the formula.
  */
 export function evaluateFormulaCompliance(shares: MaterialShare[]): FormulaCompliance {
+  const allergenOccurrences = new Map<string, number>()
+  for (const share of shares) {
+    for (const allergen of share.material.regulatory?.allergens ?? []) {
+      allergenOccurrences.set(allergen, (allergenOccurrences.get(allergen) ?? 0) + 1)
+    }
+  }
   const materials: MaterialCompliance[] = shares.map((share) => {
     const regulatory = share.material.regulatory
     const limitPercent = share.ifraLimitPercent
-    const allergen = isDeclaredAllergen(regulatory?.euAllergen)
-    const recombi = hasRecombiRisk(regulatory?.recombi)
+    const allergen = regulatory?.isAllergen ?? false
+    const allergens = regulatory?.allergens ?? []
     const banned = limitPercent === 0
 
     const messages: string[] = []
@@ -64,12 +61,17 @@ export function evaluateFormulaCompliance(shares: MaterialShare[]): FormulaCompl
 
     if (allergen) {
       if (level === 'ok') level = 'warning'
-      messages.push('Allergène UE déclarable.')
+      messages.push(
+        allergens.length > 0
+          ? `Allergène UE déclarable : ${allergens.join(', ')}.`
+          : 'Allergène UE déclarable.',
+      )
     }
 
-    if (recombi) {
+    const shared = allergens.filter((a) => (allergenOccurrences.get(a) ?? 0) >= 2)
+    if (shared.length > 0) {
       if (level === 'ok') level = 'warning'
-      messages.push('Risque de cumul avec d’autres matières (Recombi).')
+      messages.push(`Cumul avec d'autres matières de la formule : ${shared.join(', ')}.`)
     }
 
     return {
@@ -77,7 +79,7 @@ export function evaluateFormulaCompliance(shares: MaterialShare[]): FormulaCompl
       level,
       limitPercent,
       isAllergen: allergen,
-      hasRecombiRisk: recombi,
+      allergens,
       isBanned: banned,
       messages,
     }
@@ -88,9 +90,8 @@ export function evaluateFormulaCompliance(shares: MaterialShare[]): FormulaCompl
     cappedCount: materials.filter((m) => m.share.cappedByIfra).length,
     bannedCount: materials.filter((m) => m.isBanned).length,
     allergenCount: materials.filter((m) => m.isAllergen).length,
-    // A real cumulative-dose calculation needs per-constituent breakdown (not
-    // available here); as a conservative proxy, flag when several materials
-    // each carry their own Recombi risk note.
-    recombiRisk: materials.filter((m) => m.hasRecombiRisk).length >= 2,
+    overlappingAllergens: [...allergenOccurrences]
+      .filter(([, count]) => count >= 2)
+      .map(([allergen]) => allergen),
   }
 }

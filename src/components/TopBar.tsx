@@ -1,7 +1,12 @@
 import { Search, BookOpen, FileStack, FolderKanban } from 'lucide-react'
 import './TopBar.css'
 
-export default function TopBar() {
+interface TopBarProps {
+  onOpenMyFormulas: () => void
+  myFormulasActive?: boolean
+}
+
+export default function TopBar({ onOpenMyFormulas, myFormulasActive }: TopBarProps) {
   return (
     <header className="topbar">
       <div className="topbar-search">
@@ -17,7 +22,11 @@ export default function TopBar() {
           <BookOpen size={18} />
           <span>Bibliothèque</span>
         </button>
-        <button type="button" className="topbar-action">
+        <button
+          type="button"
+          className={`topbar-action ${myFormulasActive ? 'topbar-action-active' : ''}`}
+          onClick={onOpenMyFormulas}
+        >
           <FileStack size={18} />
           <span>Mes formules</span>
         </button>

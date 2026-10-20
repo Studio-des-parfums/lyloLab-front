@@ -1,0 +1,117 @@
+.projects-page {
+  padding: 2.5rem 2rem 4rem;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.projects-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  gap: 1rem;
+}
+
+.projects-header h1 {
+  font-family: 'Georgia', serif;
+  font-size: 1.75rem;
+  color: #2b2a28;
+  margin: 0 0 0.4rem;
+}
+
+.projects-header p {
+  font-size: 0.9rem;
+  color: #8a8373;
+  margin: 0;
+}
+
+.projects-status {
+  color: #8a8373;
+  font-size: 0.9rem;
+}
+
+.projects-status-error {
+  color: #b23b3b;
+}
+
+.projects-section {
+  margin-bottom: 2.5rem;
+}
+
+.projects-section h2 {
+  font-size: 1.05rem;
+  color: #2b2a28;
+  margin: 0 0 1rem;
+}
+
+.projects-empty {
+  font-size: 0.85rem;
+  color: #8a8373;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.project-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  padding: 1.25rem;
+  color: #a7813a;
+}
+
+.project-card-draft {
+  border-style: dashed;
+}
+
+.project-card-clickable {
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.project-card-clickable:hover {
+  border-color: #c9a24a;
+  box-shadow: 0 2px 10px rgba(201, 162, 74, 0.15);
+}
+
+.project-card-name {
+  font-size: 0.95rem;
+  color: #2b2a28;
+  font-weight: 600;
+}
+
+.project-card-date {
+  font-size: 0.75rem;
+  color: #8a8373;
+}
+
+.project-card-delete {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: #8a8373;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.project-card-delete:hover {
+  color: #b23b3b;
+  background: #f5ecec;
+}
+
+.project-card-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

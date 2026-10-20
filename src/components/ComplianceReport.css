@@ -1,0 +1,104 @@
+.compliance-report {
+  width: 100%;
+}
+
+.compliance-empty {
+  font-size: 0.8rem;
+  color: #8a8373;
+}
+
+.compliance-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.compliance-summary-item {
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.compliance-summary-item strong {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.compliance-summary-item span {
+  font-size: 0.72rem;
+  color: #8a8373;
+}
+
+.compliance-summary-ok {
+  background: #eef5ea;
+}
+
+.compliance-summary-ok strong {
+  color: #4a7a3a;
+}
+
+.compliance-summary-warning {
+  background: #fdf3e0;
+}
+
+.compliance-summary-warning strong {
+  color: #8a6416;
+}
+
+.compliance-summary-error {
+  background: #fbe9e4;
+}
+
+.compliance-summary-error strong {
+  color: #a4442b;
+}
+
+.compliance-recombi-note {
+  font-size: 0.8rem;
+  color: #8a6416;
+  background: #fdf3e0;
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.compliance-table-wrapper {
+  overflow-x: auto;
+}
+
+.compliance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  min-width: 720px;
+}
+
+.compliance-table th {
+  text-align: left;
+  color: #8a8373;
+  font-weight: 500;
+  padding: 0 0.6rem 0.5rem 0;
+  border-bottom: 1px solid #ece7dc;
+  white-space: nowrap;
+}
+
+.compliance-table td {
+  padding: 0.45rem 0.6rem 0.45rem 0;
+  color: #2b2a28;
+  vertical-align: top;
+}
+
+.compliance-row-warning td:first-child {
+  color: #8a6416;
+}
+
+.compliance-row-violation td:first-child {
+  color: #a4442b;
+}
+
+.compliance-row-note {
+  cursor: default;
+}

@@ -2,7 +2,12 @@ export interface MaterialRegulatory {
   ifraLimit?: string
   rciiiRestriction?: string
   ifraReason?: string
-  euAllergen?: string
+  /** True when this material carries at least one EU-declarable fragrance allergen. */
+  isAllergen?: boolean
+  /** Canonical EU allergen names found in this material (e.g. "Limonene", "Linalool"). */
+  allergens?: string[]
+  /** Original free-text EU allergen cell from the source regulatory sheet, kept for reference. */
+  euAllergenRaw?: string
   recombi?: string
   physicoChemicalIssue?: string
   triggeringConditions?: string

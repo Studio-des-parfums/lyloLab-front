@@ -60,3 +60,7 @@
 .topbar-action:hover {
   color: #c9a24a;
 }
+
+.topbar-action-active {
+  color: #c9a24a;
+}

@@ -20,6 +20,10 @@
   margin-bottom: 1.5rem;
 }
 
+.dashboard-back {
+  margin-bottom: 0.9rem;
+}
+
 .dashboard-title {
   font-family: 'Georgia', serif;
   font-size: 1.5rem;
@@ -115,9 +119,6 @@
   gap: 1.25rem;
 }
 
-.card-radar {
-  grid-row: span 1;
-}
 
 .card-title {
   font-size: 1rem;

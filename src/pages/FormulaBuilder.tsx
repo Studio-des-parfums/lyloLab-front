@@ -1,18 +1,31 @@
-import { Save, Copy, Plus } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react'
 import { useFormula } from '../context/FormulaContext'
 import FormulaNameEditor from '../components/FormulaNameEditor'
 import OlfactiveRadar from '../components/OlfactiveRadar'
 import OlfactiveRendering from '../components/OlfactiveRendering'
 import OlfactivePyramid from '../components/OlfactivePyramid'
-import PerfumeBottle from '../components/PerfumeBottle'
 import FormulaTable from '../components/FormulaTable'
+import ComplianceReport from '../components/ComplianceReport'
 import QuickAdjustments from '../components/QuickAdjustments'
 import FavoriteMaterials from '../components/FavoriteMaterials'
 import './FormulaBuilder.css'
 
-export default function FormulaBuilder() {
-  const { catalogLoading, catalogError, saveStatus, saveError, saveFormula } =
-    useFormula()
+interface FormulaBuilderProps {
+  onBack: () => void
+}
+
+export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
+  const {
+    catalogLoading,
+    catalogError,
+    saveStatus,
+    saveError,
+    saveFormula,
+    formulaStatus,
+    finalizeStatus,
+    finalizeError,
+    finalizeCurrentFormula,
+  } = useFormula()
 
   if (catalogLoading) {
     return (
@@ -37,6 +50,9 @@ export default function FormulaBuilder() {
     <div className="dashboard">
       <div className="dashboard-header">
         <div>
+          <button type="button" className="btn btn-outline dashboard-back" onClick={onBack}>
+            <ArrowLeft size={16} /> Retour
+          </button>
           <FormulaNameEditor />
           {saveStatus === 'success' && (
             <p className="dashboard-save-status dashboard-save-success">
@@ -48,6 +64,16 @@ export default function FormulaBuilder() {
               {saveError}
             </p>
           )}
+          {finalizeStatus === 'success' && formulaStatus === 'completed' && (
+            <p className="dashboard-save-status dashboard-save-success">
+              Formule finalisée.
+            </p>
+          )}
+          {finalizeStatus === 'error' && (
+            <p className="dashboard-save-status dashboard-save-error">
+              {finalizeError}
+            </p>
+          )}
         </div>
         <div className="dashboard-actions">
           <button
@@ -57,20 +83,23 @@ export default function FormulaBuilder() {
             disabled={saveStatus === 'saving'}
           >
             <Save size={16} />
-            {saveStatus === 'saving' ? 'Enregistrement...' : 'Enregistrer'}
+            {saveStatus === 'saving' ? 'Enregistrement...' : 'Enregistrer le brouillon'}
           </button>
-          <button type="button" className="btn btn-outline">
-            <Copy size={16} /> Dupliquer
-          </button>
-          <button type="button" className="btn btn-primary">
-            <Plus size={16} /> Nouvelle formule
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={finalizeCurrentFormula}
+            disabled={finalizeStatus === 'saving' || formulaStatus === 'completed'}
+          >
+            <CheckCircle2 size={16} />
+            {formulaStatus === 'completed' ? 'Formule finalisée' : 'Finaliser'}
           </button>
         </div>
       </div>
 
       <div className="dashboard-grid">
-        <section className="card card-radar">
-          <h2 className="card-title">Les 7 facettes de la parfumerie</h2>
+        <section className="card card-radar card-wide">
+          <h2 className="card-title">Les 24 facettes de la parfumerie</h2>
           <p className="card-subtitle">
             Ajustez les curseurs pour définir la personnalité olfactive de votre création.
           </p>
@@ -87,10 +116,6 @@ export default function FormulaBuilder() {
         </section>
 
         <section className="card">
-          <PerfumeBottle />
-        </section>
-
-        <section className="card">
           <FormulaTable />
         </section>
 
@@ -100,6 +125,10 @@ export default function FormulaBuilder() {
 
         <section className="card card-wide">
           <FavoriteMaterials />
+        </section>
+
+        <section className="card card-wide">
+          <ComplianceReport />
         </section>
       </div>
     </div>

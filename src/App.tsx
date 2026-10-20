@@ -5,27 +5,68 @@ import DashboardPlaceholder from './pages/DashboardPlaceholder'
 import MaterialsLibrary from './pages/MaterialsLibrary'
 import FormulationIntro from './pages/FormulationIntro'
 import FormulaBuilder from './pages/FormulaBuilder'
-import { FormulaProvider } from './context/FormulaContext'
+import ProjectsPage from './pages/ProjectsPage'
+import { FormulaProvider, useFormula } from './context/FormulaContext'
 import './App.css'
 
-function App() {
+function AppContent() {
   const [active, setActive] = useState('dashboard')
   const [formulationStarted, setFormulationStarted] = useState(false)
+  const [showMyFormulas, setShowMyFormulas] = useState(false)
+  const [builderOrigin, setBuilderOrigin] = useState<'intro' | 'myFormulas'>('intro')
+  const { loadFormula } = useFormula()
 
   function handleSelect(key: string) {
     if (key !== 'formulation') setFormulationStarted(false)
+    setShowMyFormulas(false)
     setActive(key)
   }
 
+  function handleCreateNewFromMyFormulas() {
+    setShowMyFormulas(false)
+    setActive('formulation')
+    setBuilderOrigin('myFormulas')
+    setFormulationStarted(true)
+  }
+
+  async function handleViewFormula(id: string) {
+    await loadFormula(id)
+    setShowMyFormulas(false)
+    setActive('formulation')
+    setBuilderOrigin('myFormulas')
+    setFormulationStarted(true)
+  }
+
+  function handleBackFromBuilder() {
+    setFormulationStarted(false)
+    if (builderOrigin === 'myFormulas') {
+      setShowMyFormulas(true)
+    }
+  }
+
   function renderContent() {
+    if (showMyFormulas) {
+      return (
+        <ProjectsPage
+          onCreateNew={handleCreateNewFromMyFormulas}
+          onViewFormula={handleViewFormula}
+        />
+      )
+    }
+
     switch (active) {
       case 'materials':
         return <MaterialsLibrary />
       case 'formulation':
         return formulationStarted ? (
-          <FormulaBuilder />
+          <FormulaBuilder onBack={handleBackFromBuilder} />
         ) : (
-          <FormulationIntro onStart={() => setFormulationStarted(true)} />
+          <FormulationIntro
+            onStart={() => {
+              setBuilderOrigin('intro')
+              setFormulationStarted(true)
+            }}
+          />
         )
       default:
         return <DashboardPlaceholder />
@@ -33,14 +74,23 @@ function App() {
   }
 
   return (
-    <FormulaProvider>
-      <div className="app-layout">
-        <Sidebar active={active} onSelect={handleSelect} />
-        <div className="app-main">
-          <TopBar />
-          {renderContent()}
-        </div>
+    <div className="app-layout">
+      <Sidebar active={active} onSelect={handleSelect} />
+      <div className="app-main">
+        <TopBar
+          onOpenMyFormulas={() => setShowMyFormulas(true)}
+          myFormulasActive={showMyFormulas}
+        />
+        {renderContent()}
       </div>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <FormulaProvider>
+      <AppContent />
     </FormulaProvider>
   )
 }

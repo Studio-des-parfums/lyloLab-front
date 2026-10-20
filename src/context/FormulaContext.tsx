@@ -10,7 +10,7 @@ import { FACETS, type Facet } from '../data/facetMapping'
 import { ADJUSTMENTS, type AdjustmentKey } from '../data/adjustmentMapping'
 import { fetchMaterials, type Material } from '../data/materials'
 import { averageFacetsFromMaterials, computeFormulaShares } from '../data/formulaEngine'
-import { createFormula } from '../data/formulasApi'
+import { createFormula, finalizeFormula, getFormula, updateFormula } from '../data/formulasApi'
 
 const DEFAULT_ADJUSTMENTS: Record<AdjustmentKey, number> = {
   'Diffusion / Sillage': 70,
@@ -46,6 +46,17 @@ interface FormulaContextValue {
   saveStatus: SaveStatus
   saveError: string | null
   saveFormula: () => Promise<void>
+
+  formulaId: string | null
+  formulaStatus: 'draft' | 'completed'
+  finalizeStatus: SaveStatus
+  finalizeError: string | null
+  finalizeCurrentFormula: () => Promise<void>
+  startNewFormula: () => void
+
+  loadStatus: SaveStatus
+  loadError: string | null
+  loadFormula: (id: string) => Promise<void>
 }
 
 const FormulaContext = createContext<FormulaContextValue | null>(null)
@@ -67,6 +78,13 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   const [formulaName, setFormulaName] = useState(DEFAULT_FORMULA_NAME)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
+
+  const [formulaId, setFormulaId] = useState<string | null>(null)
+  const [formulaStatus, setFormulaStatus] = useState<'draft' | 'completed'>('draft')
+  const [finalizeStatus, setFinalizeStatus] = useState<SaveStatus>('idle')
+  const [finalizeError, setFinalizeError] = useState<string | null>(null)
+  const [loadStatus, setLoadStatus] = useState<SaveStatus>('idle')
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -130,7 +148,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
     try {
       const shares = computeFormulaShares(favorites, facets, adjustments, catalog)
-      await createFormula({
+      const payload = {
         name: formulaName,
         facets,
         adjustments,
@@ -138,12 +156,77 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
           materialId: share.material.id,
           quantity: share.percent,
         })),
-      })
+      }
+
+      const saved = formulaId
+        ? await updateFormula(formulaId, payload)
+        : await createFormula({ ...payload, status: 'draft' as const })
+
+      setFormulaId(saved.id)
+      setFormulaStatus(saved.status ?? 'draft')
       setSaveStatus('success')
     } catch (err) {
       setSaveStatus('error')
       setSaveError(err instanceof Error ? err.message : 'Erreur inconnue')
     }
+  }
+
+  async function finalizeCurrentFormula() {
+    if (!formulaId) {
+      setFinalizeStatus('error')
+      setFinalizeError('Enregistrez la formule avant de la finaliser.')
+      return
+    }
+
+    setFinalizeStatus('saving')
+    setFinalizeError(null)
+
+    try {
+      const updated = await finalizeFormula(formulaId)
+      setFormulaStatus(updated.status)
+      setFinalizeStatus('success')
+    } catch (err) {
+      setFinalizeStatus('error')
+      setFinalizeError(err instanceof Error ? err.message : 'Erreur inconnue')
+    }
+  }
+
+  async function loadFormula(id: string) {
+    setLoadStatus('saving')
+    setLoadError(null)
+
+    try {
+      const detail = await getFormula(id)
+      setFormulaId(detail.id)
+      setFormulaStatus(detail.status)
+      setFormulaName(detail.name)
+      setFacets(detail.facets as Record<Facet, number>)
+      setFacetsTouched(true)
+      setAdjustments(detail.adjustments as Record<AdjustmentKey, number>)
+      setFavorites(detail.lines.map((line) => line.material as unknown as Material))
+      setSaveStatus('idle')
+      setSaveError(null)
+      setFinalizeStatus('idle')
+      setFinalizeError(null)
+      setLoadStatus('success')
+    } catch (err) {
+      setLoadStatus('error')
+      setLoadError(err instanceof Error ? err.message : 'Erreur inconnue')
+    }
+  }
+
+  function startNewFormula() {
+    setFormulaId(null)
+    setFormulaStatus('draft')
+    setSaveStatus('idle')
+    setSaveError(null)
+    setFinalizeStatus('idle')
+    setFinalizeError(null)
+    setFormulaName(DEFAULT_FORMULA_NAME)
+    setFavorites([])
+    setFacetsTouched(false)
+    setFacets(averageFacetsFromMaterials([]))
+    setAdjustments(DEFAULT_ADJUSTMENTS)
   }
 
   const value = useMemo(
@@ -164,6 +247,15 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       saveStatus,
       saveError,
       saveFormula,
+      formulaId,
+      formulaStatus,
+      finalizeStatus,
+      finalizeError,
+      finalizeCurrentFormula,
+      startNewFormula,
+      loadStatus,
+      loadError,
+      loadFormula,
     }),
     [
       catalog,
@@ -175,6 +267,12 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       formulaName,
       saveStatus,
       saveError,
+      formulaId,
+      formulaStatus,
+      finalizeStatus,
+      finalizeError,
+      loadStatus,
+      loadError,
     ],
   )
 

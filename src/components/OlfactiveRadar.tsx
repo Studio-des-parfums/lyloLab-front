@@ -4,9 +4,9 @@ import { FACET_DISPLAY } from '../data/facetDisplay'
 import { useFormula } from '../context/FormulaContext'
 import './OlfactiveRadar.css'
 
-const SIZE = 360
+const SIZE = 820
 const CENTER = SIZE / 2
-const RADIUS = 110
+const RADIUS = 280
 const LEVELS = 5
 
 function pointOnAxis(index: number, total: number, value: number) {
@@ -133,10 +133,10 @@ export default function OlfactiveRadar() {
             key={i}
             cx={v.x}
             cy={v.y}
-            r={7}
+            r={5}
             fill="#c9a24a"
             stroke="#fff"
-            strokeWidth={2}
+            strokeWidth={1.5}
             className="radar-point"
             onPointerDown={handlePointerDown(i)}
           />
@@ -145,7 +145,7 @@ export default function OlfactiveRadar() {
         {/* labels: facet name, emoji and value placed outside the circle */}
         {FACETS.map((facet, i) => {
           const angle = (Math.PI * 2 * i) / total - Math.PI / 2
-          const labelR = RADIUS + 34
+          const labelR = RADIUS + 42
           const x = CENTER + labelR * Math.cos(angle)
           const y = CENTER + labelR * Math.sin(angle)
           const cos = Math.cos(angle)
@@ -156,21 +156,18 @@ export default function OlfactiveRadar() {
             <g key={i} className="radar-label">
               <text
                 x={x}
-                y={y - 10}
+                y={y - 6}
                 textAnchor={textAnchor}
-                fontSize={11}
+                fontSize={13}
                 fill="#3a362c"
               >
-                {i + 1}. {facet}
-              </text>
-              <text x={x} y={y + 8} textAnchor={textAnchor} fontSize={16}>
-                {display.emoji}
+                {display.emoji} {facet}
               </text>
               <text
                 x={x}
-                y={y + 24}
+                y={y + 11}
                 textAnchor={textAnchor}
-                fontSize={11}
+                fontSize={13}
                 fontWeight={600}
                 fill={display.color}
               >

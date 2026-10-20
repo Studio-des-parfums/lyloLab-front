@@ -1,33 +1,43 @@
 export const FACETS = [
-  'Fraîcheur',
-  'Floralité',
-  'Fruité',
-  'Gourmande',
-  'Boisé',
+  'Acidulé',
+  'Sec',
+  'Aldéhydé',
+  'Fraicheur',
+  'Vert',
+  'Camphré',
+  'Aromatique',
+  'Epicé',
+  'Résineux',
+  'Musqué',
   'Ambré',
-  'Épicé',
+  'Poudré',
+  'Chypré',
+  'Gras',
+  'Animalisé',
+  'Boisé',
+  'Terreux',
+  'Balsamique',
+  'Fumé',
+  'Marin',
+  'Floral',
+  'Gourmand',
+  'Lacté',
+  'Fruité',
 ] as const
 
 export type Facet = (typeof FACETS)[number]
 
-export const FACET_DESCRIPTORS: Record<Facet, string[]> = {
-  Fraîcheur: ['Fraicheur', 'Aldéhydé', 'Marin', 'Vert'],
-  Floralité: ['Floral'],
-  Fruité: ['Fruité'],
-  Gourmande: ['Gourmand', 'Lacté', 'Poudré'],
-  Boisé: ['Boisé', 'Terreux', 'Chypré'],
-  Ambré: ['Ambré', 'Balsamique', 'Résineux', 'Animalisé'],
-  Épicé: ['Epicé', 'Aromatique', 'Camphré'],
-}
-
+/**
+ * Each raw descriptor from the materials catalog is now its own facet
+ * (1:1), so this is a straight passthrough/normalization rather than an
+ * aggregation across several descriptors.
+ */
 export function descriptorsToFacets(
   descriptors: Record<string, number>,
 ): Record<Facet, number> {
   const result = {} as Record<Facet, number>
   for (const facet of FACETS) {
-    const keys = FACET_DESCRIPTORS[facet]
-    const sum = keys.reduce((acc, key) => acc + (descriptors[key] ?? 0), 0)
-    result[facet] = sum / keys.length
+    result[facet] = descriptors[facet] ?? 0
   }
   return result
 }

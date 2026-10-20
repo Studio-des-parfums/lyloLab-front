@@ -56,19 +56,14 @@ export default function MaterialDetail({ material, onClose }: MaterialDetailProp
   )
 }
 
-function isAllergen(euAllergen?: string) {
-  if (!euAllergen) return false
-  const normalized = euAllergen.trim().toLowerCase()
-  return !(normalized === 'no' || normalized.startsWith('non'))
-}
-
 function MaterialRegulatorySection({ regulatory }: { regulatory: Material['regulatory'] }) {
   if (!regulatory) return null
 
   const {
     ifraLimit,
     rciiiRestriction,
-    euAllergen,
+    isAllergen,
+    allergens = [],
     recombi,
     physicoChemicalIssue,
     triggeringConditions,
@@ -79,7 +74,6 @@ function MaterialRegulatorySection({ regulatory }: { regulatory: Material['regul
     menaGso,
   } = regulatory
 
-  const allergen = isAllergen(euAllergen)
   const hasRecombiRisk = Boolean(recombi && recombi.trim().toLowerCase() !== 'no')
 
   const rows: [string, string | undefined][] = [
@@ -96,13 +90,15 @@ function MaterialRegulatorySection({ regulatory }: { regulatory: Material['regul
       <h4>Conformité &amp; stabilité</h4>
 
       <div className="detail-regulatory-badges">
-        {allergen && (
-          <span className="detail-badge detail-badge-warning">⚠ Allergène UE déclarable</span>
+        {isAllergen && (
+          <span className="detail-badge detail-badge-warning">
+            ⚠ Allergène UE{allergens.length > 0 ? ` : ${allergens.join(', ')}` : ' déclarable'}
+          </span>
         )}
         {hasRecombiRisk && (
           <span className="detail-badge detail-badge-warning">⚠ Risque de cumul (Recombi)</span>
         )}
-        {!allergen && !hasRecombiRisk && (
+        {!isAllergen && !hasRecombiRisk && (
           <span className="detail-badge detail-badge-ok">Pas d'alerte connue</span>
         )}
       </div>

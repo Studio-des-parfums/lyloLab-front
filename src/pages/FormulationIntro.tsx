@@ -10,7 +10,7 @@ const STEPS = [
     icon: SlidersHorizontal,
     title: 'Réglez les 7 facettes de la parfumerie',
     description:
-      'Ajustez les curseurs du radar olfactif selon vos goûts : plus de Floralité si vous aimez, moins de Boisé si vous n\'aimez pas. Les Ajustements rapides affinent ensuite la diffusion, la tenue, la puissance, la douceur et l\'originalité.',
+      'Ajustez les curseurs du radar olfactif selon vos goûts parmi les 24 facettes (plus de Floral si vous aimez, moins de Boisé si vous n\'aimez pas...). Les Ajustements rapides affinent ensuite la diffusion, la tenue, la puissance, la douceur et l\'originalité.',
   },
   {
     icon: FlaskConical,
