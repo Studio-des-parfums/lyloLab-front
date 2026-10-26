@@ -1,3 +1,5 @@
+import { API_URL, apiFetch } from './api'
+
 export interface DashboardKpis {
   draftFormulas: number
   completedFormulas: number
@@ -74,10 +76,8 @@ export interface DashboardOverview {
   regulatoryTotal: number
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-
 export async function fetchDashboard(): Promise<DashboardOverview> {
-  const res = await fetch(`${API_URL}/api/dashboard`)
+  const res = await apiFetch(`${API_URL}/api/dashboard`)
   if (!res.ok) throw new Error(`Failed to load dashboard (${res.status})`)
   return res.json()
 }

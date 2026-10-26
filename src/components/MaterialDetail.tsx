@@ -1027,34 +1027,45 @@ function MaterialRegulatorySection({
 
   const {
     ifraLimit,
-    rciiiRestriction,
     isAllergen,
     allergens = [],
     recombi,
     physicoChemicalIssue,
     triggeringConditions,
     impactResult,
-    usaMocra,
-    californiaProp65,
-    chinaCsar,
-    menaGso,
+    reviewNotes = [],
   } = regulatory
 
-  const hasRecombiRisk = Boolean(
-    recombi && recombi.trim().toLowerCase() !== 'no',
-  )
+  // Cleaned-up data carries recombiRisk; older data only has the free text.
+  const hasRecombiRisk =
+    regulatory.recombiRisk ??
+    Boolean(recombi && !['no', 'non'].includes(recombi.trim().toLowerCase()))
 
-  const rows: [string, string | undefined][] = [
+  const join = (...parts: (string | undefined)[]) =>
+    parts.filter(Boolean).join(' · ') || undefined
+
+  const rows: [string, string | undefined, string | undefined][] = [
     [
       'Limite IFRA (Cat. 4)',
       typeof ifraLimit === 'number' ? `${Number((ifraLimit * 100).toFixed(4))} %` : ifraLimit,
+      regulatory.ifraLimitNote,
     ],
-    ['Restriction RCIII', rciiiRestriction],
-    ['USA (MoCRA)', usaMocra],
-    ['Californie (Prop 65 / CFFIRKA)', californiaProp65],
-    ['Chine (CSAR)', chinaCsar],
-    ['MENA (GSO 1943)', menaGso],
-  ].filter(([, value]) => Boolean(value)) as [string, string][]
+    [
+      'Raison IFRA',
+      regulatory.ifraReason,
+      regulatory.ifraAmendment ? `Amendement ${regulatory.ifraAmendment}` : undefined,
+    ],
+    [
+      'Annexe III (règlement cosmétique UE)',
+      regulatory.rciiiRestriction,
+      join(regulatory.ghsClassification, regulatory.rciiiNote),
+    ],
+    ['USA (MoCRA)', regulatory.usaMocra, regulatory.usaMocraNote],
+    ['Californie (Prop 65 / CFFIRKA)', regulatory.californiaProp65, regulatory.californiaNote],
+    ['Chine (IECIC / STSC)', regulatory.chinaCsar, join(regulatory.chinaNote, regulatory.chinaMeaning)],
+    ['MENA (GSO 1943)', regulatory.menaGso, regulatory.menaNote],
+  ]
+  const filledRows = rows.filter(([, value, note]) => Boolean(value || note))
 
   return (
     <div className="detail-regulatory">
@@ -1074,6 +1085,9 @@ function MaterialRegulatorySection({
             {allergens.length > 0 ? ` : ${allergens.join(', ')}` : ' déclarable'}
           </span>
         )}
+        {!isAllergen && regulatory.euAllergenNote && (
+          <span className="detail-badge detail-badge-neutral">{regulatory.euAllergenNote}</span>
+        )}
         {hasRecombiRisk && (
           <span className="detail-badge detail-badge-warning">
             ⚠ Risque de cumul (Recombi)
@@ -1086,8 +1100,27 @@ function MaterialRegulatorySection({
         )}
       </div>
 
-      {recombi && hasRecombiRisk && (
-        <p className="detail-regulatory-note">{recombi}</p>
+      {reviewNotes.length > 0 && (
+        <div className="detail-review">
+          <strong>À compléter</strong>
+          <ul>
+            {reviewNotes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {isAllergen && regulatory.euAllergenNote && (
+        <p className="detail-regulatory-note">
+          <strong>Allergènes UE :</strong> {regulatory.euAllergenNote}
+        </p>
+      )}
+
+      {recombi && (
+        <p className="detail-regulatory-note">
+          <strong>Recombinaison :</strong> {recombi}
+        </p>
       )}
 
       {physicoChemicalIssue && (
@@ -1106,12 +1139,15 @@ function MaterialRegulatorySection({
         </p>
       )}
 
-      {rows.length > 0 && (
+      {filledRows.length > 0 && (
         <dl className="detail-regulatory-grid">
-          {rows.map(([label, value]) => (
+          {filledRows.map(([label, value, note]) => (
             <div key={label} className="detail-regulatory-row">
               <dt>{label}</dt>
-              <dd>{value}</dd>
+              <dd>
+                {value ?? '—'}
+                {note && <span className="detail-regulatory-row-note">{note}</span>}
+              </dd>
             </div>
           ))}
         </dl>

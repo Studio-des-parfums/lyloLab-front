@@ -6,7 +6,10 @@ import MaterialsLibrary from './pages/MaterialsLibrary'
 import FormulaBuilder from './pages/FormulaBuilder'
 import ProjectsPage from './pages/ProjectsPage'
 import ClientsPage from './pages/ClientsPage'
+import TeamPage from './pages/TeamPage'
+import AuthPage from './pages/AuthPage'
 import { FormulaProvider, useFormula } from './context/FormulaContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import './App.css'
 
 type FormulationView = 'list' | 'builder'
@@ -109,6 +112,8 @@ function AppContent() {
         )
       case 'materials':
         return <MaterialsLibrary onGoToFormula={handleGoToFormula} />
+      case 'team':
+        return <TeamPage />
       case 'formulation':
         switch (formulationView) {
           case 'builder':
@@ -145,11 +150,25 @@ function AppContent() {
   )
 }
 
-function App() {
+function SignedInApp() {
+  const { user, checking } = useAuth()
+
+  if (checking) return <div className="app-splash">Chargement...</div>
+  if (!user) return <AuthPage />
+
+  // Keyed by user so signing in as someone else starts from a clean state.
   return (
-    <FormulaProvider>
+    <FormulaProvider key={user.id}>
       <AppContent />
     </FormulaProvider>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <SignedInApp />
+    </AuthProvider>
   )
 }
 

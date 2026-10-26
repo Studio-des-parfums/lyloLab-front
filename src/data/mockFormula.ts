@@ -22,4 +22,5 @@ export const navItems = [
   { key: 'tests', label: 'Tests & stabilité' },
   { key: 'library', label: 'Bibliothèque olfactive' },
   { key: 'export', label: 'Export & documentation' },
+  { key: 'team', label: 'Équipe' },
 ]

@@ -40,3 +40,46 @@
   color: #2b2a28;
 }
 
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: 1rem;
+}
+
+.topbar-user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.topbar-user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2b2a28;
+}
+
+.topbar-user-team {
+  font-size: 0.72rem;
+  color: #8a8373;
+}
+
+.topbar-logout {
+  border: 1px solid #ddd5c0;
+  background: #fff;
+  color: #5c5647;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.topbar-logout:hover {
+  border-color: #c9a24a;
+  color: #c9a24a;
+}

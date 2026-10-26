@@ -1,23 +1,45 @@
+import { API_URL, apiFetch } from './api'
+
+/**
+ * Regulatory profile. Region fields hold a short status from a fixed list
+ * (see backend/scripts/regulatory_mappings.py); the matching *Note field holds
+ * the details.
+ */
 export interface MaterialRegulatory {
-  /** Free text ("0.17 % Cat.4") or, for Excel percentage cells, a fraction (0.02 = 2 %). */
+  /** "0,6 %", "Interdite", "Aucune limite", or, for Excel percentage cells, a fraction (0.02 = 2 %). */
   ifraLimit?: string | number
-  rciiiRestriction?: string
+  ifraLimitNote?: string
   ifraReason?: string
+  /** IFRA amendment(s) the restriction comes from, e.g. "49, 51". */
+  ifraAmendment?: string
+  /** "Non listée", "Annexe III", "Annexe II (interdite)" or "À vérifier". */
+  rciiiRestriction?: string
+  rciiiNote?: string
+  ghsClassification?: string
   /** True when this material carries at least one EU-declarable fragrance allergen. */
   isAllergen?: boolean
   /** Canonical EU allergen names found in this material (e.g. "Limonene", "Linalool"). */
   allergens?: string[]
-  /** Original free-text EU allergen cell from the source regulatory sheet, kept for reference. */
+  euAllergenNote?: string
+  /** Original free-text EU allergen cell, only on data not yet cleaned up. */
   euAllergenRaw?: string
+  recombiRisk?: boolean
   recombi?: string
   physicoChemicalIssue?: string
   triggeringConditions?: string
   impactResult?: string
   usaMocra?: string
+  usaMocraNote?: string
   californiaProp65?: string
+  californiaNote?: string
   chinaCsar?: string
+  chinaNote?: string
+  /** Legacy free-text column, merged into chinaNote by the cleanup. */
   chinaMeaning?: string
   menaGso?: string
+  menaNote?: string
+  /** Information still missing for this material. */
+  reviewNotes?: string[]
 }
 
 export type MaterialOrigin = 'natural' | 'synthetic'
@@ -107,16 +129,14 @@ export interface MaterialDetail extends Material {
   } | null
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-
 export async function fetchMaterials(): Promise<Material[]> {
-  const res = await fetch(`${API_URL}/api/materials`)
+  const res = await apiFetch(`${API_URL}/api/materials`)
   if (!res.ok) throw new Error(`Failed to fetch materials (${res.status})`)
   return res.json()
 }
 
 export async function fetchMaterial(id: string): Promise<MaterialDetail> {
-  const res = await fetch(`${API_URL}/api/materials/${id}`)
+  const res = await apiFetch(`${API_URL}/api/materials/${id}`)
   if (!res.ok) throw new Error(`Failed to fetch material (${res.status})`)
   return res.json()
 }
@@ -171,7 +191,7 @@ export async function updateMaterial(
   id: string,
   payload: UpdateMaterialPayload,
 ): Promise<Material> {
-  const res = await fetch(`${API_URL}/api/materials/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/materials/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -184,7 +204,7 @@ export async function createMaterialStock(
   materialId: string,
   payload: CreateMaterialStockPayload,
 ): Promise<Material> {
-  const res = await fetch(`${API_URL}/api/materials/${materialId}/stocks`, {
+  const res = await apiFetch(`${API_URL}/api/materials/${materialId}/stocks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -198,7 +218,7 @@ export async function updateMaterialStock(
   stockId: number,
   payload: UpdateMaterialStockPayload,
 ): Promise<Material> {
-  const res = await fetch(`${API_URL}/api/materials/${materialId}/stocks/${stockId}`, {
+  const res = await apiFetch(`${API_URL}/api/materials/${materialId}/stocks/${stockId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -211,7 +231,7 @@ export async function deleteMaterialStock(
   materialId: string,
   stockId: number,
 ): Promise<Material> {
-  const res = await fetch(`${API_URL}/api/materials/${materialId}/stocks/${stockId}`, {
+  const res = await apiFetch(`${API_URL}/api/materials/${materialId}/stocks/${stockId}`, {
     method: 'DELETE',
   })
   if (!res.ok) throw new Error(await readErrorMessage(res, 'Failed to delete stock'))

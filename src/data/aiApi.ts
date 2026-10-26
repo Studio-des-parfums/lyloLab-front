@@ -1,3 +1,5 @@
+import { API_URL, apiFetch } from './api'
+
 /** A change proposed by the formulation assistant (see backend/src/ai/formula-changes.ts). */
 export type FormulaChange =
   | { type: 'set_facet'; facet: string; value: number }
@@ -50,13 +52,11 @@ export interface ChatResponse {
   sources: ChatSource[]
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-
 export async function sendChat(
   messages: ChatMessagePayload[],
   formula: FormulaSnapshot,
 ): Promise<ChatResponse> {
-  const res = await fetch(`${API_URL}/api/ai/chat`, {
+  const res = await apiFetch(`${API_URL}/api/ai/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, formula }),

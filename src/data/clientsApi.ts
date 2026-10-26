@@ -1,3 +1,5 @@
+import { API_URL, apiFetch } from './api'
+
 export interface ProjectFormulaSummary {
   id: string
   name: string
@@ -53,16 +55,14 @@ export interface UpdateProjectPayload {
   endDate?: string | null
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-
 export async function listClients(): Promise<Client[]> {
-  const res = await fetch(`${API_URL}/api/clients`)
+  const res = await apiFetch(`${API_URL}/api/clients`)
   if (!res.ok) throw new Error(`Failed to load clients (${res.status})`)
   return res.json()
 }
 
 export async function getClient(id: string): Promise<Client> {
-  const res = await fetch(`${API_URL}/api/clients/${id}`)
+  const res = await apiFetch(`${API_URL}/api/clients/${id}`)
   if (!res.ok) throw new Error(`Failed to load client (${res.status})`)
   return res.json()
 }
@@ -76,7 +76,7 @@ export interface CreateClientPayload {
 }
 
 export async function createClient(payload: CreateClientPayload): Promise<Client> {
-  const res = await fetch(`${API_URL}/api/clients`, {
+  const res = await apiFetch(`${API_URL}/api/clients`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -89,7 +89,7 @@ export async function createClient(payload: CreateClientPayload): Promise<Client
 }
 
 export async function updateClient(id: string, payload: UpdateClientPayload): Promise<Client> {
-  const res = await fetch(`${API_URL}/api/clients/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/clients/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -102,7 +102,7 @@ export async function updateClient(id: string, payload: UpdateClientPayload): Pr
 }
 
 export async function getProject(id: string): Promise<ProjectDetail> {
-  const res = await fetch(`${API_URL}/api/projects/${id}`)
+  const res = await apiFetch(`${API_URL}/api/projects/${id}`)
   if (!res.ok) throw new Error(`Failed to load project (${res.status})`)
   return res.json()
 }
@@ -116,7 +116,7 @@ export interface CreateProjectPayload {
 }
 
 export async function createProject(payload: CreateProjectPayload): Promise<Project> {
-  const res = await fetch(`${API_URL}/api/projects`, {
+  const res = await apiFetch(`${API_URL}/api/projects`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -132,7 +132,7 @@ export async function updateProject(
   id: string,
   payload: UpdateProjectPayload,
 ): Promise<ProjectDetail> {
-  const res = await fetch(`${API_URL}/api/projects/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/projects/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

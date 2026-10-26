@@ -1,3 +1,5 @@
+import { API_URL, apiFetch } from './api'
+
 export interface CreateFormulaLinePayload {
   materialId: string
   quantity: number
@@ -64,10 +66,8 @@ export interface FormulaDetail {
   project: FormulaProjectInfo | null
 }
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
-
 export async function createFormula(payload: CreateFormulaPayload) {
-  const res = await fetch(`${API_URL}/api/formulas`, {
+  const res = await apiFetch(`${API_URL}/api/formulas`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -77,7 +77,7 @@ export async function createFormula(payload: CreateFormulaPayload) {
 }
 
 export async function updateFormula(id: string, payload: CreateFormulaPayload) {
-  const res = await fetch(`${API_URL}/api/formulas/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/formulas/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -90,19 +90,19 @@ export async function updateFormula(id: string, payload: CreateFormulaPayload) {
 }
 
 export async function listFormulas(): Promise<FormulaSummary[]> {
-  const res = await fetch(`${API_URL}/api/formulas`)
+  const res = await apiFetch(`${API_URL}/api/formulas`)
   if (!res.ok) throw new Error(`Failed to load formulas (${res.status})`)
   return res.json()
 }
 
 export async function getFormula(id: string): Promise<FormulaDetail> {
-  const res = await fetch(`${API_URL}/api/formulas/${id}`)
+  const res = await apiFetch(`${API_URL}/api/formulas/${id}`)
   if (!res.ok) throw new Error(`Failed to load formula (${res.status})`)
   return res.json()
 }
 
 export async function finalizeFormula(id: string) {
-  const res = await fetch(`${API_URL}/api/formulas/${id}/status`, {
+  const res = await apiFetch(`${API_URL}/api/formulas/${id}/status`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status: 'completed' }),
@@ -112,12 +112,12 @@ export async function finalizeFormula(id: string) {
 }
 
 export async function deleteFormula(id: string) {
-  const res = await fetch(`${API_URL}/api/formulas/${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`${API_URL}/api/formulas/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`Failed to delete formula (${res.status})`)
 }
 
 export async function convertFormulaToMaterial(id: string) {
-  const res = await fetch(`${API_URL}/api/formulas/${id}/convert-to-material`, {
+  const res = await apiFetch(`${API_URL}/api/formulas/${id}/convert-to-material`, {
     method: 'POST',
   })
   if (!res.ok) {

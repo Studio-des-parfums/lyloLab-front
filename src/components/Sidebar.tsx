@@ -8,6 +8,7 @@ import {
   BookOpen,
   FileText,
   Users,
+  UserCog,
 } from 'lucide-react'
 import { navItems } from '../data/mockFormula'
 import './Sidebar.css'
@@ -22,6 +23,7 @@ const icons: Record<string, React.ReactNode> = {
   tests: <TestTube2 size={18} />,
   library: <BookOpen size={18} />,
   export: <FileText size={18} />,
+  team: <UserCog size={18} />,
 }
 
 interface SidebarProps {
@@ -33,7 +35,7 @@ export default function Sidebar({ active, onSelect }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <span className="sidebar-brand-title">Studio des Parfums</span>
+        <span className="sidebar-brand-title">Lylo-Lab</span>
         <span className="sidebar-brand-sub">PARIS</span>
       </div>
 

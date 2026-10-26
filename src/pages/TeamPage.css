@@ -1,0 +1,230 @@
+.team-page {
+  padding: 2.5rem 2rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.team-header {
+  margin-bottom: 2rem;
+}
+
+.team-header h1 {
+  font-family: 'Georgia', serif;
+  font-size: 1.75rem;
+  color: #2b2a28;
+  margin: 0 0 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team-header p {
+  font-size: 0.9rem;
+  color: #8a8373;
+  margin: 0;
+}
+
+.team-name-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.team-name-edit input {
+  font-family: 'Georgia', serif;
+  font-size: 1.5rem;
+  color: #2b2a28;
+  border: none;
+  border-bottom: 2px solid #c9a24a;
+  background: transparent;
+  outline: none;
+  min-width: 0;
+  flex: 1;
+  max-width: 420px;
+}
+
+.team-name-edit button,
+.team-icon-btn {
+  border: none;
+  background: none;
+  color: #8a8373;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.team-name-edit button:hover,
+.team-icon-btn:hover {
+  background: #f5f2ea;
+  color: #2b2a28;
+}
+
+.team-status {
+  color: #8a8373;
+  font-size: 0.9rem;
+}
+
+.team-status-error {
+  color: #b23b3b;
+}
+
+.team-card {
+  background: #fff;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.team-card h2 {
+  font-size: 1.05rem;
+  color: #2b2a28;
+  margin: 0 0 0.4rem;
+}
+
+.team-card-hint {
+  font-size: 0.82rem;
+  color: #8a8373;
+  margin: 0 0 1rem;
+}
+
+.team-invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team-invite-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.2em;
+  color: #2b2a28;
+  background: #f5f2ea;
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.team-members {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.team-member {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+}
+
+.team-member + .team-member {
+  border-top: 1px solid #f1ece0;
+}
+
+.team-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1b1d2a;
+  color: #c9a24a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.team-member-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.team-member-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2b2a28;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.team-member-meta {
+  font-size: 0.76rem;
+  color: #8a8373;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #8a8373;
+  background: #f5f2ea;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.team-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #5c5647;
+  flex-shrink: 0;
+}
+
+.team-role-admin {
+  color: #a07c2c;
+}
+
+.team-role-select {
+  font: inherit;
+  font-size: 0.8rem;
+  border: 1px solid #ddd5c0;
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  background: #fff;
+  color: #2b2a28;
+  flex-shrink: 0;
+}
+
+.team-remove-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.team-remove-yes {
+  border: none;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  background: #b23b3b;
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .team-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .team-member {
+    flex-wrap: wrap;
+  }
+}

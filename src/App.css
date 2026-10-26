@@ -8,3 +8,13 @@
   flex: 1;
   min-width: 0;
 }
+
+.app-splash {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a8373;
+  font-size: 0.9rem;
+  background: #f7f4ec;
+}
