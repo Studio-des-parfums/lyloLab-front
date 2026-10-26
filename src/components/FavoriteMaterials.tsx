@@ -6,7 +6,7 @@ import MaterialPicker from './MaterialPicker'
 import './FavoriteMaterials.css'
 
 export default function FavoriteMaterials() {
-  const { favorites, addFavorite, removeFavorite } = useFormula()
+  const { favorites, addFavorite, removeFavorite, isLocked } = useFormula()
   const [pickerOpen, setPickerOpen] = useState(false)
 
   return (
@@ -20,14 +20,16 @@ export default function FavoriteMaterials() {
             <div key={m.id} className="material-item">
               <div className="material-circle">
                 <Icon size={22} color={color} />
-                <button
-                  type="button"
-                  className="material-remove"
-                  onClick={() => removeFavorite(m.id)}
-                  aria-label={`Retirer ${m.name}`}
-                >
-                  <X size={10} />
-                </button>
+                {!isLocked && (
+                  <button
+                    type="button"
+                    className="material-remove"
+                    onClick={() => removeFavorite(m.id)}
+                    aria-label={`Retirer ${m.name}`}
+                  >
+                    <X size={10} />
+                  </button>
+                )}
               </div>
               <span className="material-name" title={m.name}>
                 {m.name}
@@ -35,16 +37,18 @@ export default function FavoriteMaterials() {
             </div>
           )
         })}
-        <div className="material-item">
-          <button
-            type="button"
-            className="material-circle material-add"
-            onClick={() => setPickerOpen(true)}
-          >
-            <Plus size={18} />
-          </button>
-          <span className="material-name">Ajouter</span>
-        </div>
+        {!isLocked && (
+          <div className="material-item">
+            <button
+              type="button"
+              className="material-circle material-add"
+              onClick={() => setPickerOpen(true)}
+            >
+              <Plus size={18} />
+            </button>
+            <span className="material-name">Ajouter</span>
+          </div>
+        )}
       </div>
 
       {pickerOpen && (

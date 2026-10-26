@@ -10,6 +10,14 @@ import { FACETS, type Facet } from '../data/facetMapping'
 import { ADJUSTMENTS, type AdjustmentKey } from '../data/adjustmentMapping'
 import { fetchMaterials, type Material } from '../data/materials'
 import { averageFacetsFromMaterials, computeFormulaShares } from '../data/formulaEngine'
+import { parseIfraLimitPercent } from '../data/ifraLimit'
+import type { FormulaChange } from '../data/aiApi'
+import {
+  adjustmentsFromFacets,
+  catalogAverageFacets,
+  facetsForAdjustment,
+  facetsFromShares,
+} from '../data/profileLinks'
 import {
   convertFormulaToMaterial,
   createFormula,
@@ -25,14 +33,6 @@ import {
   type CreateClientPayload,
   type CreateProjectPayload,
 } from '../data/clientsApi'
-
-const DEFAULT_ADJUSTMENTS: Record<AdjustmentKey, number> = {
-  'Diffusion / Sillage': 70,
-  Tenue: 80,
-  Puissance: 60,
-  Douceur: 50,
-  Originalité: 65,
-}
 
 const DEFAULT_FORMULA_NAME = 'Mon Accord sur Mesure'
 const DEFAULT_TOTAL_VOLUME_ML = 50
@@ -64,11 +64,18 @@ interface FormulaContextValue {
   setFacetValue: (facet: Facet, value: number) => void
   resetFacetsToFavorites: () => void
 
+  /** Read from the facets (see profileLinks); setting one rewrites the facets. */
   adjustments: Record<AdjustmentKey, number>
   setAdjustmentValue: (key: AdjustmentKey, value: number) => void
 
+  manualMl: Record<string, number> | null
+  setManualMl: (value: Record<string, number> | null) => void
+
   formulaName: string
   setFormulaName: (name: string) => void
+
+  /** Applies a set of assistant-proposed changes in one go, once the user accepted them. */
+  applyAiChanges: (changes: FormulaChange[]) => void
 
   totalVolumeMl: number
   setTotalVolumeMl: (ml: number) => void
@@ -79,6 +86,8 @@ interface FormulaContextValue {
 
   formulaId: string | null
   formulaStatus: 'draft' | 'completed'
+  /** A finalized formula is read-only: it can only be duplicated into a new version. */
+  isLocked: boolean
   finalizeStatus: SaveStatus
   finalizeError: string | null
   finalizeCurrentFormula: () => Promise<void>
@@ -114,11 +123,11 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   )
   const [facetsTouched, setFacetsTouched] = useState(false)
 
-  const [adjustments, setAdjustments] =
-    useState<Record<AdjustmentKey, number>>(DEFAULT_ADJUSTMENTS)
+
+  const [manualMl, setManualMl] = useState<Record<string, number> | null>(null)
 
   const [formulaName, setFormulaName] = useState(DEFAULT_FORMULA_NAME)
-  const [totalVolumeMl, setTotalVolumeMl] = useState(DEFAULT_TOTAL_VOLUME_ML)
+  const [totalVolumeMl, setTotalVolumeMlState] = useState(DEFAULT_TOTAL_VOLUME_ML)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -174,12 +183,35 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const isLocked = formulaStatus === 'completed'
+
+  const baselineFacets = useMemo(() => catalogAverageFacets(catalog), [catalog])
+  const adjustments = useMemo(
+    () => adjustmentsFromFacets(facets, baselineFacets),
+    [facets, baselineFacets],
+  )
+
   async function refreshCatalog() {
     const materials = await fetchMaterials()
     setCatalog(materials)
   }
 
+  function updateTotalVolumeMl(next: number) {
+    if (isLocked) return
+    if (manualMl && totalVolumeMl > 0 && next !== totalVolumeMl) {
+      const factor = next / totalVolumeMl
+      setManualMl(
+        Object.fromEntries(
+          Object.entries(manualMl).map(([id, ml]) => [id, ml * factor]),
+        ),
+      )
+    }
+    setTotalVolumeMlState(next)
+  }
+
   function addFavorite(material: Material) {
+    if (isLocked) return
+    setManualMl(null)
     setFavorites((prev) => {
       const next = [...prev, material]
       if (!facetsTouched) setFacets(averageFacetsFromMaterials(next))
@@ -188,6 +220,8 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   }
 
   function removeFavorite(id: string) {
+    if (isLocked) return
+    setManualMl(null)
     setFavorites((prev) => {
       const next = prev.filter((m) => m.id !== id)
       if (!facetsTouched) setFacets(averageFacetsFromMaterials(next))
@@ -196,17 +230,151 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   }
 
   function setFacetValue(facet: Facet, value: number) {
+    if (isLocked) return
+    setManualMl(null)
     setFacetsTouched(true)
     setFacets((prev) => ({ ...prev, [facet]: value }))
   }
 
   function resetFacetsToFavorites() {
+    if (isLocked) return
+    setManualMl(null)
     setFacetsTouched(false)
     setFacets(averageFacetsFromMaterials(favorites))
   }
 
   function setAdjustmentValue(key: AdjustmentKey, value: number) {
-    setAdjustments((prev) => ({ ...prev, [key]: value }))
+    if (isLocked) return
+    setManualMl(null)
+    setFacetsTouched(true)
+    setFacets((prev) => facetsForAdjustment(prev, key, value, baselineFacets))
+  }
+
+  /** Facets of the blend described by a manual ml distribution. */
+  function facetsOfManualMl(
+    materials: Material[],
+    ml: Record<string, number>,
+  ): Record<Facet, number> | null {
+    return facetsFromShares(
+      materials.map((material) => ({ material, percent: ml[material.id] ?? 0 })),
+    )
+  }
+
+  function updateManualMl(value: Record<string, number> | null) {
+    if (isLocked) return
+    setManualMl(value)
+    if (!value) return
+    // A hand-edited formula drives the radar (and so the adjustments).
+    const blendFacets = facetsOfManualMl(favorites, value)
+    if (blendFacets) {
+      setFacetsTouched(true)
+      setFacets(blendFacets)
+    }
+  }
+
+  function updateFormulaName(name: string) {
+    if (!isLocked) setFormulaName(name)
+  }
+
+  function applyAiChanges(changes: FormulaChange[]) {
+    if (isLocked) return
+    let nextFavorites = favorites
+    let nextFacets = facets
+    let nextName = formulaName
+    let nextVolume = totalVolumeMl
+    let facetsEdited = false
+    let compositionChanged = false
+    let percentages: Record<string, number> | null = null
+    let resetDistribution = false
+
+    for (const change of changes) {
+      switch (change.type) {
+        case 'set_facet':
+          nextFacets = { ...nextFacets, [change.facet]: change.value }
+          facetsEdited = true
+          compositionChanged = true
+          break
+        case 'set_adjustment':
+          nextFacets = facetsForAdjustment(
+            nextFacets,
+            change.adjustment as AdjustmentKey,
+            change.value,
+            baselineFacets,
+          )
+          facetsEdited = true
+          compositionChanged = true
+          break
+        case 'add_material': {
+          const material = catalog.find((m) => m.id === change.materialId)
+          if (material && !nextFavorites.some((m) => m.id === material.id)) {
+            nextFavorites = [...nextFavorites, material]
+            compositionChanged = true
+          }
+          break
+        }
+        case 'remove_material':
+          nextFavorites = nextFavorites.filter((m) => m.id !== change.materialId)
+          compositionChanged = true
+          break
+        case 'set_percentages':
+          for (const item of change.items) {
+            const material = catalog.find((m) => m.id === item.materialId)
+            if (material && !nextFavorites.some((m) => m.id === material.id)) {
+              nextFavorites = [...nextFavorites, material]
+            }
+          }
+          percentages = Object.fromEntries(
+            change.items.map((item) => [item.materialId, item.percent]),
+          )
+          break
+        case 'reset_auto_distribution':
+          resetDistribution = true
+          break
+        case 'rename_formula':
+          nextName = change.name
+          break
+        case 'set_total_volume':
+          nextVolume = change.ml
+          break
+      }
+    }
+
+    if (facetsEdited) {
+      setFacetsTouched(true)
+    } else if (!facetsTouched && nextFavorites !== favorites) {
+      nextFacets = averageFacetsFromMaterials(nextFavorites)
+    }
+
+    let nextManualMl: Record<string, number> | null = manualMl
+    if (percentages) {
+      // Same IFRA ceiling the table enforces on manual edits.
+      const byId = percentages
+      nextManualMl = Object.fromEntries(
+        nextFavorites.map((material) => {
+          const limit = parseIfraLimitPercent(material.regulatory?.ifraLimit)
+          const percent = Math.min(byId[material.id] ?? 0, limit ?? 100)
+          return [material.id, (percent / 100) * nextVolume]
+        }),
+      )
+      const blendFacets = facetsOfManualMl(nextFavorites, nextManualMl)
+      if (blendFacets) {
+        nextFacets = blendFacets
+        setFacetsTouched(true)
+      }
+    } else if (resetDistribution || compositionChanged) {
+      nextManualMl = null
+    } else if (manualMl && totalVolumeMl > 0 && nextVolume !== totalVolumeMl) {
+      const factor = nextVolume / totalVolumeMl
+      nextManualMl = Object.fromEntries(
+        Object.entries(manualMl).map(([id, ml]) => [id, ml * factor]),
+      )
+    }
+
+    setFavorites(nextFavorites)
+    setFacets(nextFacets)
+    setFormulaName(nextName)
+    setTotalVolumeMlState(nextVolume)
+    setManualMl(nextManualMl)
   }
 
   async function persistFormula() {
@@ -214,17 +382,27 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       throw new Error('Ajoutez au moins une matière première avant d\'enregistrer.')
     }
 
-    const shares = computeFormulaShares(favorites, facets, adjustments, catalog)
+    const computedShares = computeFormulaShares(favorites, facets, adjustments, catalog)
+    const lines = manualMl
+      ? favorites.map((material) => ({
+          materialId: material.id,
+          quantity:
+            totalVolumeMl > 0
+              ? ((manualMl[material.id] ?? 0) / totalVolumeMl) * 100
+              : 0,
+        }))
+      : computedShares.map((share) => ({
+          materialId: share.material.id,
+          quantity: share.percent,
+        }))
+
     const payload = {
       name: formulaName,
       facets,
       adjustments,
       totalVolumeMl,
       projectId,
-      lines: shares.map((share) => ({
-        materialId: share.material.id,
-        quantity: share.percent,
-      })),
+      lines,
     }
 
     const saved = formulaId
@@ -264,20 +442,56 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function manualMlFromSaved(
+    lines: { material: { id: string }; quantity: number }[],
+    savedFacets: Record<Facet, number>,
+    savedAdjustments: Record<AdjustmentKey, number>,
+    volume: number,
+  ): Record<string, number> | null {
+    const savedFavorites = lines.map((line) => line.material as unknown as Material)
+    const computed = computeFormulaShares(
+      savedFavorites,
+      savedFacets,
+      savedAdjustments,
+      catalog,
+    )
+    const computedById = new Map(
+      computed.map((share) => [share.material.id, share.percent]),
+    )
+    const isManual = lines.some(
+      (line) =>
+        Math.abs(line.quantity - (computedById.get(line.material.id) ?? 0)) > 0.01,
+    )
+    if (!isManual) return null
+    return Object.fromEntries(
+      lines.map((line) => [
+        line.material.id,
+        (line.quantity / 100) * volume,
+      ]),
+    )
+  }
+
   async function loadFormula(id: string) {
     setLoadStatus('saving')
     setLoadError(null)
 
     try {
       const detail = await getFormula(id)
+      const volume = detail.totalVolumeMl ?? DEFAULT_TOTAL_VOLUME_ML
+      const loadedFacets = detail.facets as Record<Facet, number>
+      // Adjustments are read from the facets; the stored ones are ignored, and
+      // comparing against them below keeps the saved quantities exact.
+      const loadedAdjustments = adjustmentsFromFacets(loadedFacets, baselineFacets)
       setFormulaId(detail.id)
       setFormulaStatus(detail.status)
       setFormulaName(detail.name)
-      setTotalVolumeMl(detail.totalVolumeMl ?? DEFAULT_TOTAL_VOLUME_ML)
-      setFacets(detail.facets as Record<Facet, number>)
+      setTotalVolumeMlState(volume)
+      setFacets(loadedFacets)
       setFacetsTouched(true)
-      setAdjustments(detail.adjustments as Record<AdjustmentKey, number>)
       setFavorites(detail.lines.map((line) => line.material as unknown as Material))
+      setManualMl(
+        manualMlFromSaved(detail.lines, loadedFacets, loadedAdjustments, volume),
+      )
       setProjectId(detail.project?.id ?? null)
       setSaveStatus('idle')
       setSaveError(null)
@@ -298,14 +512,21 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
     try {
       const detail = await getFormula(id)
+      const volume = detail.totalVolumeMl ?? DEFAULT_TOTAL_VOLUME_ML
+      const loadedFacets = detail.facets as Record<Facet, number>
+      // Adjustments are read from the facets; the stored ones are ignored, and
+      // comparing against them below keeps the saved quantities exact.
+      const loadedAdjustments = adjustmentsFromFacets(loadedFacets, baselineFacets)
       setFormulaId(null)
       setFormulaStatus('draft')
       setFormulaName(nextVersionedName(detail.name))
-      setTotalVolumeMl(detail.totalVolumeMl ?? DEFAULT_TOTAL_VOLUME_ML)
-      setFacets(detail.facets as Record<Facet, number>)
+      setTotalVolumeMlState(volume)
+      setFacets(loadedFacets)
       setFacetsTouched(true)
-      setAdjustments(detail.adjustments as Record<AdjustmentKey, number>)
       setFavorites(detail.lines.map((line) => line.material as unknown as Material))
+      setManualMl(
+        manualMlFromSaved(detail.lines, loadedFacets, loadedAdjustments, volume),
+      )
       setProjectId(detail.project?.id ?? null)
       setSaveStatus('idle')
       setSaveError(null)
@@ -351,11 +572,11 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
     setConvertStatus('idle')
     setConvertError(null)
     setFormulaName(DEFAULT_FORMULA_NAME)
-    setTotalVolumeMl(DEFAULT_TOTAL_VOLUME_ML)
+    setTotalVolumeMlState(DEFAULT_TOTAL_VOLUME_ML)
+    setManualMl(null)
     setFavorites([])
     setFacetsTouched(false)
     setFacets(averageFacetsFromMaterials([]))
-    setAdjustments(DEFAULT_ADJUSTMENTS)
     setProjectId(null)
   }
 
@@ -390,15 +611,19 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       resetFacetsToFavorites,
       adjustments,
       setAdjustmentValue,
+      manualMl,
+      setManualMl: updateManualMl,
       formulaName,
-      setFormulaName,
+      setFormulaName: updateFormulaName,
+      applyAiChanges,
       totalVolumeMl,
-      setTotalVolumeMl,
+      setTotalVolumeMl: updateTotalVolumeMl,
       saveStatus,
       saveError,
       saveFormula,
       formulaId,
       formulaStatus,
+      isLocked,
       finalizeStatus,
       finalizeError,
       finalizeCurrentFormula,
@@ -422,14 +647,17 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       catalogLoading,
       catalogError,
       favorites,
+      facetsTouched,
       facets,
       adjustments,
+      manualMl,
       formulaName,
       totalVolumeMl,
       saveStatus,
       saveError,
       formulaId,
       formulaStatus,
+      isLocked,
       finalizeStatus,
       finalizeError,
       loadStatus,

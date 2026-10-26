@@ -2,7 +2,7 @@ import { useFormula, ADJUSTMENTS } from '../context/FormulaContext'
 import './QuickAdjustments.css'
 
 export default function QuickAdjustments() {
-  const { adjustments, setAdjustmentValue } = useFormula()
+  const { adjustments, setAdjustmentValue, isLocked } = useFormula()
 
   return (
     <div className="adjustments">
@@ -16,6 +16,7 @@ export default function QuickAdjustments() {
               min={0}
               max={100}
               value={adjustments[key]}
+              disabled={isLocked}
               onChange={(e) =>
                 setAdjustmentValue(key, Number(e.target.value))
               }

@@ -1,0 +1,385 @@
+.home-page {
+  padding: 2.5rem 2rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.home-header h1 {
+  font-family: 'Georgia', serif;
+  font-size: 1.75rem;
+  color: #2b2a28;
+  margin: 0 0 0.4rem;
+}
+
+.home-header p {
+  font-size: 0.9rem;
+  color: #8a8373;
+  margin: 0;
+}
+
+.home-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.home-status {
+  color: #8a8373;
+  font-size: 0.9rem;
+}
+
+.home-status-error {
+  color: #b23b3b;
+}
+
+/* Key figures */
+.home-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.home-kpi {
+  background: #fff;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.home-kpi-label {
+  font-size: 0.78rem;
+  color: #8a8373;
+}
+
+.home-kpi-value {
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: #2b2a28;
+  line-height: 1.1;
+}
+
+.home-kpi-sub {
+  font-size: 0.78rem;
+  color: #5c5647;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.home-kpi-sub-alert {
+  color: #b23b3b;
+  font-weight: 600;
+}
+
+/* Cards */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.home-card {
+  background: #fff;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  min-width: 0;
+}
+
+.home-card-wide {
+  grid-column: 1 / -1;
+}
+
+.home-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.home-card-head h2 {
+  font-size: 1.05rem;
+  color: #2b2a28;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.home-card-head h2 svg {
+  color: #c9a24a;
+}
+
+.home-card-hint {
+  font-size: 0.78rem;
+  color: #8a8373;
+  margin: -0.25rem 0 0.75rem;
+}
+
+.home-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #c9a24a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  cursor: pointer;
+}
+
+.home-link:hover {
+  color: #b68e38;
+}
+
+.home-empty {
+  font-size: 0.85rem;
+  color: #8a8373;
+  margin: 0;
+}
+
+.home-more {
+  font-size: 0.78rem;
+  color: #8a8373;
+  margin: 0.6rem 0 0;
+}
+
+/* Rows */
+.home-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-list > li + li {
+  border-top: 1px solid #f1ece0;
+}
+
+.home-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.4rem;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.home-row:hover {
+  background: #faf7f0;
+}
+
+.home-row-static {
+  cursor: default;
+}
+
+.home-row-static:hover {
+  background: none;
+}
+
+.home-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.home-row-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #2b2a28;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-row-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #8a8373;
+  background: #f5f2ea;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.home-row-meta {
+  font-size: 0.76rem;
+  color: #8a8373;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-row-detail {
+  font-size: 0.76rem;
+  color: #5c5647;
+}
+
+.home-row-chevron {
+  color: #c4bba6;
+  flex-shrink: 0;
+}
+
+/* Status badges: always icon + label, never color alone */
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.home-badge-fixed {
+  min-width: 112px;
+  justify-content: center;
+  align-self: flex-start;
+}
+
+.home-badge-violation {
+  background: #f8e6e4;
+  color: #b23b3b;
+}
+
+.home-badge-warning {
+  background: #f6ecdc;
+  color: #a5642a;
+}
+
+.home-badge-neutral {
+  background: #f5f2ea;
+  color: #5c5647;
+}
+
+/* Most used materials: single-series horizontal bars */
+.home-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.home-bar-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 6px;
+  outline: none;
+}
+
+.home-bar-row:hover,
+.home-bar-row:focus-visible {
+  background: #faf7f0;
+}
+
+.home-bar-label {
+  font-size: 0.8rem;
+  color: #2b2a28;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-bar-track {
+  display: block;
+  height: 14px;
+  border-left: 1px solid #e3ddcd;
+}
+
+.home-bar {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  background: #c9a24a;
+  border-radius: 0 4px 4px 0;
+}
+
+.home-bar-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5c5647;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-bar-tip {
+  position: absolute;
+  z-index: 5;
+  left: 11.5rem;
+  bottom: calc(100% + 4px);
+  display: none;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  background: #1b1d2a;
+  color: #e7e4de;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.home-bar-tip strong {
+  color: #fff;
+}
+
+.home-bar-row:hover .home-bar-tip,
+.home-bar-row:focus-visible .home-bar-tip {
+  display: flex;
+}
+
+.home-bars-caption {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: #8a8373;
+}
+
+@media (max-width: 900px) {
+  .home-page {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .home-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

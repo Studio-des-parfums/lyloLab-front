@@ -257,6 +257,12 @@
   font-size: 0.82rem;
   color: #2b2a28;
   margin: 0;
+  white-space: pre-wrap;
+}
+
+.detail-regulatory-row dd.detail-value-empty {
+  color: #b9b2a2;
+  font-style: italic;
 }
 
 .detail-stock-total {

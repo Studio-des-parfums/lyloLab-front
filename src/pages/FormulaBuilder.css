@@ -50,6 +50,19 @@
   font-size: 0.8rem;
 }
 
+.dashboard-locked-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  background: #f3ecd9;
+  border: 1px solid #e3d3a8;
+  color: #7a6326;
+  font-size: 0.8rem;
+}
+
 .dashboard-save-success {
   color: #5a9e5f;
 }
@@ -102,7 +115,7 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 0.8fr;
+  grid-template-columns: 1fr 1.5fr 0.8fr;
   gap: 1.25rem;
 }
 
@@ -116,7 +129,11 @@
 .card-stack {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
+}
+
+.card-stack .card {
+  padding: 0.9rem 1rem;
 }
 
 

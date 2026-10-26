@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { X, Search } from 'lucide-react'
 import { useFormula } from '../context/FormulaContext'
+import { dominantDescriptor } from '../data/descriptorIcons'
 import type { Material } from '../data/materials'
 import './MaterialPicker.css'
 
@@ -19,11 +20,10 @@ export default function MaterialPicker({
   const [query, setQuery] = useState('')
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = normalizeSearch(query)
     return catalog
       .filter((m) => !excludeIds.includes(m.id))
-      .filter((m) => (q ? m.name.toLowerCase().includes(q) : true))
-      .slice(0, 60)
+      .filter((m) => (q ? searchableText(m).includes(q) : true))
   }, [query, excludeIds, catalog])
 
   return (
@@ -35,7 +35,7 @@ export default function MaterialPicker({
             <input
               autoFocus
               type="text"
-              placeholder="Rechercher une matière première..."
+              placeholder="Rechercher par nom, fournisseur ou note dominante..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -46,6 +46,9 @@ export default function MaterialPicker({
         </div>
 
         <div className="picker-list">
+          <p className="picker-count">
+            {results.length} matière{results.length > 1 ? 's' : ''}
+          </p>
           {results.map((m) => (
             <button
               key={m.id}
@@ -65,5 +68,30 @@ export default function MaterialPicker({
         </div>
       </div>
     </div>
+  )
+}
+
+function normalizeSearch(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+function searchableText(material: Material): string {
+  return normalizeSearch(
+    [
+      material.name,
+      material.casNumber,
+      dominantDescriptor(material.descriptors),
+      ...material.stocks.flatMap((stock) => [
+        stock.supplier,
+        stock.producer,
+        stock.label,
+      ]),
+    ]
+      .filter(Boolean)
+      .join(' | '),
   )
 }

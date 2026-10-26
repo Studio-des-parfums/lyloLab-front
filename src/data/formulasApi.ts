@@ -82,7 +82,10 @@ export async function updateFormula(id: string, payload: CreateFormulaPayload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  if (!res.ok) throw new Error(`Failed to update formula (${res.status})`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `Failed to update formula (${res.status})`)
+  }
   return res.json()
 }
 

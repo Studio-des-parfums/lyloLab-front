@@ -111,7 +111,7 @@ export default function MaterialsLibrary({ onGoToFormula }: MaterialsLibraryProp
           <Search size={16} />
           <input
             type="text"
-            placeholder="Rechercher par nom, CAS ou fournisseur..."
+            placeholder="Rechercher par nom, fournisseur ou note dominante..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -246,7 +246,7 @@ function normalizeSearch(text: string): string {
 // "Ambrox Super" is filed under Ambroxan).
 function searchableText(m: Material): string {
   return normalizeSearch(
-    [m.name, m.casNumber, ...m.stocks.flatMap((s) => [s.supplier, s.producer, s.label])]
+    [m.name, m.casNumber, dominantDescriptor(m.descriptors), ...m.stocks.flatMap((s) => [s.supplier, s.producer, s.label])]
       .filter(Boolean)
       .join(' | '),
   )

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
-import DashboardPlaceholder from './pages/DashboardPlaceholder'
+import DashboardPage from './pages/DashboardPage'
 import MaterialsLibrary from './pages/MaterialsLibrary'
 import FormulaBuilder from './pages/FormulaBuilder'
 import ProjectsPage from './pages/ProjectsPage'
@@ -68,6 +68,21 @@ function AppContent() {
     setFormulationView('builder')
   }
 
+  function handleCreateNewFromDashboard() {
+    handleCreateNew()
+    setActive('formulation')
+  }
+
+  async function handleOpenFormulaFromDashboard(id: string, projectId: string | null) {
+    if (projectId) await handleViewFormulaFromProject(id, projectId)
+    else await handleGoToFormula(id)
+  }
+
+  function handleOpenProject(projectId: string) {
+    setOpenProjectId(projectId)
+    setActive('clients')
+  }
+
   async function handleDuplicateFormula(id: string) {
     await duplicateFormula(id)
     setBuilderOrigin({ type: 'formulas' })
@@ -108,7 +123,14 @@ function AppContent() {
             )
         }
       default:
-        return <DashboardPlaceholder />
+        return (
+          <DashboardPage
+            onOpenFormula={handleOpenFormulaFromDashboard}
+            onOpenProject={handleOpenProject}
+            onNewFormula={handleCreateNewFromDashboard}
+            onOpenMaterials={() => setActive('materials')}
+          />
+        )
     }
   }
 

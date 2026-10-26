@@ -19,6 +19,11 @@
   cursor: grabbing;
 }
 
+.radar-point-locked,
+.radar-point-locked:active {
+  cursor: default;
+}
+
 .radar-label text {
   user-select: none;
 }

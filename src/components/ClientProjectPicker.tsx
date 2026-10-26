@@ -20,6 +20,7 @@ export default function ClientProjectPicker() {
     setProjectId,
     createClientAndSelect,
     createProjectAndSelect,
+    isLocked,
   } = useFormula()
 
   const [showClient, setShowClient] = useState(projectId !== null)
@@ -137,6 +138,7 @@ export default function ClientProjectPicker() {
           type="button"
           className={!clientMode ? 'active' : ''}
           onClick={selectPersonal}
+          disabled={isLocked}
         >
           <User size={14} /> Personnelle
         </button>
@@ -144,6 +146,7 @@ export default function ClientProjectPicker() {
           type="button"
           className={clientMode ? 'active' : ''}
           onClick={selectClient}
+          disabled={isLocked}
         >
           <Building2 size={14} /> Client
         </button>
@@ -155,6 +158,7 @@ export default function ClientProjectPicker() {
             <>
               <select
                 className="formula-select"
+                disabled={isLocked}
                 value={selectedClientId}
                 onChange={(e) => handleClientChange(e.target.value)}
               >
@@ -172,6 +176,7 @@ export default function ClientProjectPicker() {
               {selectedClientId && (
                 <select
                   className="formula-select"
+                  disabled={isLocked}
                   value={projectId ?? ''}
                   onChange={(e) => handleProjectChange(e.target.value)}
                 >

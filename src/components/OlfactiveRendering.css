@@ -1,17 +1,18 @@
 .rendering {
   background: linear-gradient(135deg, #f7ede0, #f1e3cf);
-  border-radius: 14px;
-  padding: 1.1rem 1.25rem;
+  border-radius: 12px;
+  padding: 0.8rem 0.95rem;
 }
 
 .rendering-title {
-  font-size: 0.85rem;
-  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  margin: 0 0 0.35rem;
   color: #2b2a28;
 }
 
 .rendering-tags {
-  font-size: 0.82rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
   color: #5c5647;
   font-weight: 500;
 }

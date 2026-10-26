@@ -49,6 +49,13 @@ interface MaterialFormState {
   allergens: string
   flavor: string
   flavorRestriction: string
+  adjacentNote: string
+  regulation: string
+  freeNote: string
+  visualAspect: string
+  flashPoint: string
+  physicochemicalState: string
+  waterBase: '' | 'yes' | 'no'
   descriptors: Record<string, string>
   regulatoryJson: string
 }
@@ -102,6 +109,13 @@ function formFromMaterial(material: Material): MaterialFormState {
     allergens: material.allergens ?? '',
     flavor: material.flavor ?? '',
     flavorRestriction: material.flavorRestriction ?? '',
+    adjacentNote: material.adjacentNote ?? '',
+    regulation: material.regulation ?? '',
+    freeNote: material.freeNote ?? '',
+    visualAspect: material.visualAspect ?? '',
+    flashPoint: material.flashPoint ?? '',
+    physicochemicalState: material.physicochemicalState ?? '',
+    waterBase: material.waterBase === null ? '' : material.waterBase ? 'yes' : 'no',
     descriptors: Object.fromEntries(
       descriptorKeys.map((key) => [
         key,
@@ -146,6 +160,13 @@ function buildMaterialPayload(form: MaterialFormState): UpdateMaterialPayload | 
     allergens: textOrNull(form.allergens),
     flavor: textOrNull(form.flavor),
     flavorRestriction: textOrNull(form.flavorRestriction),
+    adjacentNote: textOrNull(form.adjacentNote),
+    regulation: textOrNull(form.regulation),
+    freeNote: textOrNull(form.freeNote),
+    visualAspect: textOrNull(form.visualAspect),
+    flashPoint: textOrNull(form.flashPoint),
+    physicochemicalState: textOrNull(form.physicochemicalState),
+    waterBase: form.waterBase === '' ? null : form.waterBase === 'yes',
     descriptors,
     regulatory,
   }
@@ -391,6 +412,7 @@ export default function MaterialDetail({
               </div>
             </div>
 
+            <MaterialTechnicalSheetSection material={material} />
             <MaterialLabInfoSection material={material} />
           </>
         )}
@@ -641,6 +663,74 @@ function MaterialEditForm({
               value={form.flavorRestriction}
               onChange={(e) => set('flavorRestriction', e.target.value)}
             />
+          </label>
+        </div>
+      </div>
+
+      <div className="detail-edit-section">
+        <h4>Fiche technique</h4>
+        <div className="detail-edit-grid">
+          <label className="detail-edit-field detail-edit-field-wide">
+            Note adjacente
+            <textarea
+              rows={2}
+              value={form.adjacentNote}
+              onChange={(e) => set('adjacentNote', e.target.value)}
+            />
+          </label>
+          <label className="detail-edit-field detail-edit-field-wide">
+            Règlementation
+            <textarea
+              rows={2}
+              value={form.regulation}
+              onChange={(e) => set('regulation', e.target.value)}
+            />
+          </label>
+          <label className="detail-edit-field detail-edit-field-wide">
+            Note libre
+            <textarea
+              rows={3}
+              value={form.freeNote}
+              onChange={(e) => set('freeNote', e.target.value)}
+            />
+          </label>
+          <label className="detail-edit-field">
+            Aspect visuel
+            <input
+              type="text"
+              placeholder="ex. liquide incolore"
+              value={form.visualAspect}
+              onChange={(e) => set('visualAspect', e.target.value)}
+            />
+          </label>
+          <label className="detail-edit-field">
+            Flash point
+            <input
+              type="text"
+              placeholder="ex. 93 °C"
+              value={form.flashPoint}
+              onChange={(e) => set('flashPoint', e.target.value)}
+            />
+          </label>
+          <label className="detail-edit-field">
+            État physicochimique
+            <input
+              type="text"
+              placeholder="ex. liquide, solide, cristaux"
+              value={form.physicochemicalState}
+              onChange={(e) => set('physicochemicalState', e.target.value)}
+            />
+          </label>
+          <label className="detail-edit-field">
+            Water base
+            <select
+              value={form.waterBase}
+              onChange={(e) => set('waterBase', e.target.value as MaterialFormState['waterBase'])}
+            >
+              <option value="">Non renseigné</option>
+              <option value="yes">Oui</option>
+              <option value="no">Non</option>
+            </select>
           </label>
         </div>
       </div>
@@ -897,6 +987,35 @@ function MaterialLabInfoSection({ material }: { material: Material }) {
   )
 }
 
+function MaterialTechnicalSheetSection({ material }: { material: Material }) {
+  const rows: [string, string | null][] = [
+    ['Note adjacente', material.adjacentNote],
+    ['Règlementation', material.regulation],
+    ['Note libre', material.freeNote],
+    ['Aspect visuel', material.visualAspect],
+    ['Flash point', material.flashPoint],
+    ['État physicochimique', material.physicochemicalState],
+    ['Water base', material.waterBase === null ? null : material.waterBase ? 'Oui' : 'Non'],
+  ]
+
+  // Always shown, so missing information is visible and can be filled in via "Modifier".
+  return (
+    <div className="detail-regulatory">
+      <h4>Fiche technique</h4>
+      <dl className="detail-regulatory-grid">
+        {rows.map(([label, value]) => (
+          <div key={label} className="detail-regulatory-row">
+            <dt>{label}</dt>
+            <dd className={value ? undefined : 'detail-value-empty'}>
+              {value ?? 'Non renseigné'}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  )
+}
+
 function MaterialRegulatorySection({
   regulatory,
   isSynthetic,
@@ -926,7 +1045,10 @@ function MaterialRegulatorySection({
   )
 
   const rows: [string, string | undefined][] = [
-    ['Limite IFRA (Cat. 4)', ifraLimit],
+    [
+      'Limite IFRA (Cat. 4)',
+      typeof ifraLimit === 'number' ? `${Number((ifraLimit * 100).toFixed(4))} %` : ifraLimit,
+    ],
     ['Restriction RCIII', rciiiRestriction],
     ['USA (MoCRA)', usaMocra],
     ['Californie (Prop 65 / CFFIRKA)', californiaProp65],

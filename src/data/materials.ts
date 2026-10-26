@@ -1,5 +1,6 @@
 export interface MaterialRegulatory {
-  ifraLimit?: string
+  /** Free text ("0.17 % Cat.4") or, for Excel percentage cells, a fraction (0.02 = 2 %). */
+  ifraLimit?: string | number
   rciiiRestriction?: string
   ifraReason?: string
   /** True when this material carries at least one EU-declarable fragrance allergen. */
@@ -55,6 +56,14 @@ export interface Material {
   allergens: string | null
   flavor: string | null
   flavorRestriction: string | null
+  // Technical sheet, filled in by hand.
+  adjacentNote: string | null
+  regulation: string | null
+  freeNote: string | null
+  visualAspect: string | null
+  flashPoint: string | null
+  physicochemicalState: string | null
+  waterBase: boolean | null
   stocks: MaterialStock[]
 }
 
@@ -127,6 +136,13 @@ export interface UpdateMaterialPayload {
   allergens?: string | null
   flavor?: string | null
   flavorRestriction?: string | null
+  adjacentNote?: string | null
+  regulation?: string | null
+  freeNote?: string | null
+  visualAspect?: string | null
+  flashPoint?: string | null
+  physicochemicalState?: string | null
+  waterBase?: boolean | null
   regulatory?: MaterialRegulatory | null
 }
 

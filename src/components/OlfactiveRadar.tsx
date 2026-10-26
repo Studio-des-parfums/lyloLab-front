@@ -20,7 +20,7 @@ function pointOnAxis(index: number, total: number, value: number) {
 }
 
 export default function OlfactiveRadar() {
-  const { facets, setFacetValue } = useFormula()
+  const { facets, setFacetValue, isLocked } = useFormula()
   const svgRef = useRef<SVGSVGElement>(null)
   const draggingIndex = useRef<number | null>(null)
   const total = FACETS.length
@@ -53,6 +53,7 @@ export default function OlfactiveRadar() {
 
   function handlePointerDown(index: number) {
     return (e: React.PointerEvent) => {
+      if (isLocked) return
       e.preventDefault()
       draggingIndex.current = index
       ;(e.target as Element).setPointerCapture?.(e.pointerId)
@@ -137,7 +138,7 @@ export default function OlfactiveRadar() {
             fill="#c9a24a"
             stroke="#fff"
             strokeWidth={1.5}
-            className="radar-point"
+            className={isLocked ? 'radar-point radar-point-locked' : 'radar-point'}
             onPointerDown={handlePointerDown(i)}
           />
         ))}

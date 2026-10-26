@@ -6,7 +6,7 @@ const PRESETS = [30, 50, 100]
 const STEP = 5
 
 export default function FormulaVolumeInput() {
-  const { totalVolumeMl, setTotalVolumeMl } = useFormula()
+  const { totalVolumeMl, setTotalVolumeMl, isLocked } = useFormula()
 
   function nudge(delta: number) {
     setTotalVolumeMl(Math.max(0, Math.round(totalVolumeMl + delta)))
@@ -21,6 +21,7 @@ export default function FormulaVolumeInput() {
       <div className="formula-volume-control">
         <button
           type="button"
+          disabled={isLocked}
           className="formula-volume-step"
           onClick={() => nudge(-STEP)}
           aria-label={`Diminuer de ${STEP} ml`}
@@ -38,6 +39,7 @@ export default function FormulaVolumeInput() {
               const value = Number(e.target.value)
               setTotalVolumeMl(Number.isFinite(value) && value >= 0 ? value : 0)
             }}
+            disabled={isLocked}
             aria-label="Volume total en millilitres"
           />
           <span>ml</span>
@@ -45,6 +47,7 @@ export default function FormulaVolumeInput() {
 
         <button
           type="button"
+          disabled={isLocked}
           className="formula-volume-step"
           onClick={() => nudge(STEP)}
           aria-label={`Augmenter de ${STEP} ml`}
@@ -57,6 +60,7 @@ export default function FormulaVolumeInput() {
         {PRESETS.map((preset) => (
           <button
             type="button"
+          disabled={isLocked}
             key={preset}
             className={totalVolumeMl === preset ? 'active' : ''}
             onClick={() => setTotalVolumeMl(preset)}

@@ -4,7 +4,7 @@ import { useFormula } from '../context/FormulaContext'
 import './FormulaNameEditor.css'
 
 export default function FormulaNameEditor() {
-  const { formulaName, setFormulaName } = useFormula()
+  const { formulaName, setFormulaName, isLocked } = useFormula()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(formulaName)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -46,14 +46,16 @@ export default function FormulaNameEditor() {
   return (
     <h1 className="dashboard-title">
       {formulaName}{' '}
-      <button
-        type="button"
-        className="edit-icon"
-        onClick={startEditing}
-        aria-label="Modifier le nom de la formule"
-      >
-        <Pencil size={16} />
-      </button>
+      {!isLocked && (
+        <button
+          type="button"
+          className="edit-icon"
+          onClick={startEditing}
+          aria-label="Modifier le nom de la formule"
+        >
+          <Pencil size={16} />
+        </button>
+      )}
     </h1>
   )
 }

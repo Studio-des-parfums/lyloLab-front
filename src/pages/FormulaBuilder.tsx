@@ -1,4 +1,4 @@
-import { ArrowLeft, Save, CheckCircle2, FlaskConical, Copy } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle2, FlaskConical, Copy, Lock } from 'lucide-react'
 import { useFormula } from '../context/FormulaContext'
 import FormulaNameEditor from '../components/FormulaNameEditor'
 import FormulaVolumeInput from '../components/FormulaVolumeInput'
@@ -10,6 +10,7 @@ import FormulaTable from '../components/FormulaTable'
 import ComplianceReport from '../components/ComplianceReport'
 import QuickAdjustments from '../components/QuickAdjustments'
 import FavoriteMaterials from '../components/FavoriteMaterials'
+import FormulaAssistant from '../components/FormulaAssistant'
 import './FormulaBuilder.css'
 
 interface FormulaBuilderProps {
@@ -25,6 +26,7 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
     saveFormula,
     formulaId,
     formulaStatus,
+    isLocked,
     finalizeStatus,
     finalizeError,
     finalizeCurrentFormula,
@@ -68,6 +70,12 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
             <ClientProjectPicker />
             <FormulaVolumeInput />
           </div>
+          {isLocked && (
+            <p className="dashboard-locked-banner">
+              <Lock size={14} /> Formule finalisée : elle n'est plus modifiable. Dupliquez-la pour
+              créer une nouvelle version.
+            </p>
+          )}
           {saveStatus === 'success' && (
             <p className="dashboard-save-status dashboard-save-success">
               Formule enregistrée avec succès.
@@ -100,23 +108,25 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
           )}
         </div>
         <div className="dashboard-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={saveFormula}
-            disabled={saveStatus === 'saving'}
-          >
-            <Save size={16} />
-            {saveStatus === 'saving' ? 'Enregistrement...' : 'Enregistrer le brouillon'}
-          </button>
+          {!isLocked && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={saveFormula}
+              disabled={saveStatus === 'saving'}
+            >
+              <Save size={16} />
+              {saveStatus === 'saving' ? 'Enregistrement...' : 'Enregistrer le brouillon'}
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-outline"
             onClick={finalizeCurrentFormula}
-            disabled={finalizeStatus === 'saving' || formulaStatus === 'completed'}
+            disabled={finalizeStatus === 'saving' || isLocked}
           >
             <CheckCircle2 size={16} />
-            {formulaStatus === 'completed' ? 'Formule finalisée' : 'Finaliser'}
+            {isLocked ? 'Formule finalisée' : 'Finaliser'}
           </button>
           {!isClientProjectFormula && (
             <button
@@ -131,7 +141,7 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
                 : 'Transformer en matière première'}
             </button>
           )}
-          {!isClientProjectFormula && formulaId && (
+          {formulaId && (!isClientProjectFormula || isLocked) && (
             <button
               type="button"
               className="btn btn-outline"
@@ -178,6 +188,8 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
           <ComplianceReport />
         </section>
       </div>
+
+      {!isLocked && <FormulaAssistant />}
     </div>
   )
 }

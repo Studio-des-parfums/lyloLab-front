@@ -128,7 +128,7 @@ function adjustmentMultiplier(
  * the pool; the remaining pool is re-distributed among the rest. Repeats
  * until stable (classic "water-filling" allocation).
  */
-function allocateWithCaps(
+export function allocateWithCaps(
   weights: number[],
   caps: (number | null)[],
   pool: number,
@@ -212,6 +212,31 @@ export function computeFormulaShares(
     cappedByIfra: capped[i],
     ifraLimitPercent: limits[i],
   }))
+}
+
+/**
+ * Overrides the engine's computed shares with the user's manual ml
+ * quantities, when the formula is in manual distribution mode.
+ */
+export function applyManualMl(
+  computedShares: MaterialShare[],
+  manualMl: Record<string, number> | null,
+  totalVolumeMl: number,
+): MaterialShare[] {
+  if (!manualMl) return computedShares
+  return computedShares.map((share) => {
+    const percent =
+      totalVolumeMl > 0
+        ? ((manualMl[share.material.id] ?? 0) / totalVolumeMl) * 100
+        : 0
+    return {
+      ...share,
+      percent,
+      cappedByIfra:
+        share.ifraLimitPercent !== null &&
+        percent >= share.ifraLimitPercent - 1e-9,
+    }
+  })
 }
 
 export function averageFacetsFromMaterials(
