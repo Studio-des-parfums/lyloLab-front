@@ -1,0 +1,104 @@
+.formula-volume {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.formula-volume-control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.formula-volume-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ece7dc;
+  background: #fff;
+  color: #8a8373;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.formula-volume-step:hover {
+  border-color: #c9a24a;
+  color: #a7813a;
+}
+
+.formula-volume-input {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  background: #f8f6f0;
+  border: 1px solid #ece7dc;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  transition: border-color 0.15s ease;
+}
+
+.formula-volume-input:focus-within {
+  border-color: #c9a24a;
+}
+
+.formula-volume-input input {
+  width: 52px;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2b2a28;
+  text-align: right;
+}
+
+.formula-volume-input input::-webkit-outer-spin-button,
+.formula-volume-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.formula-volume-input input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.formula-volume-input span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #a79a7e;
+  letter-spacing: 0.04em;
+}
+
+.formula-volume-presets {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.formula-volume-presets button {
+  border: 1px solid #ece7dc;
+  background: #fff;
+  color: #8a8373;
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.formula-volume-presets button:hover {
+  border-color: #c9a24a;
+  color: #a7813a;
+}
+
+.formula-volume-presets button.active {
+  border-color: #c9a24a;
+  background: #fdf8ec;
+  color: #a7813a;
+  font-weight: 700;
+}

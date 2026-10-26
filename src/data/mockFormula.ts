@@ -15,6 +15,7 @@ export const olfactiveTags = ['Lumineux', 'Élégant', 'Sensuel', 'Moderne']
 export const navItems = [
   { key: 'dashboard', label: 'Tableau de bord' },
   { key: 'formulation', label: 'Formulation' },
+  { key: 'clients', label: 'Clients' },
   { key: 'materials', label: 'Matières premières' },
   { key: 'accords', label: 'Accords & inspirations' },
   { key: 'regulation', label: 'Réglementation' },

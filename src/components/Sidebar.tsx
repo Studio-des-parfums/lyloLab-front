@@ -7,6 +7,7 @@ import {
   TestTube2,
   BookOpen,
   FileText,
+  Users,
 } from 'lucide-react'
 import { navItems } from '../data/mockFormula'
 import './Sidebar.css'
@@ -14,6 +15,7 @@ import './Sidebar.css'
 const icons: Record<string, React.ReactNode> = {
   dashboard: <LayoutDashboard size={18} />,
   formulation: <FlaskConical size={18} />,
+  clients: <Users size={18} />,
   materials: <Leaf size={18} />,
   accords: <Sparkles size={18} />,
   regulation: <ShieldCheck size={18} />,

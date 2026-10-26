@@ -145,6 +145,26 @@
   overflow: hidden;
 }
 
+.material-origin-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.material-origin-synthetic {
+  background: #eef0fb;
+  color: #4a4ea0;
+}
+
+.material-origin-natural {
+  background: #eef5ea;
+  color: #4a7a3a;
+}
+
 .library-table {
   width: 100%;
   border-collapse: collapse;
@@ -182,5 +202,14 @@
   max-width: 360px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.material-card-stock {
+  font-size: 0.7rem;
+  color: #a7813a;
+}
+
+.library-table-stock {
   white-space: nowrap;
 }

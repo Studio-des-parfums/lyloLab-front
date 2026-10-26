@@ -181,8 +181,11 @@ export function computeFormulaShares(
 ): MaterialShare[] {
   if (favorites.length === 0) return []
 
-  const allDescriptors = Object.keys(catalog[0]?.descriptors ?? {})
-  const catalogAverage = computeCatalogAverage(catalog, allDescriptors)
+  // Inventory-only materials have no olfactory profile yet; keep them out of
+  // the baseline so they don't drag the average toward zero.
+  const profiled = catalog.filter((m) => Object.keys(m.descriptors).length > 0)
+  const allDescriptors = Object.keys(profiled[0]?.descriptors ?? {})
+  const catalogAverage = computeCatalogAverage(profiled, allDescriptors)
 
   const weights = favorites.map((material) => {
     const materialFacets = descriptorsToFacets(material.descriptors)

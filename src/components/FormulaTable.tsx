@@ -10,7 +10,7 @@ const STATUS_ICON: Record<ComplianceLevel, string> = {
 }
 
 export default function FormulaTable() {
-  const { favorites, facets, adjustments, catalog } = useFormula()
+  const { favorites, facets, adjustments, catalog, totalVolumeMl } = useFormula()
   const shares = computeFormulaShares(favorites, facets, adjustments, catalog)
   const total = shares.reduce((sum, s) => sum + s.percent, 0)
   const compliance = evaluateFormulaCompliance(shares)
@@ -64,6 +64,7 @@ export default function FormulaTable() {
               <tr>
                 <th>Matière première</th>
                 <th>%</th>
+                <th>ml</th>
                 <th>Conformité</th>
               </tr>
             </thead>
@@ -72,6 +73,7 @@ export default function FormulaTable() {
                 <tr key={share.material.id} className={`formula-row-${level}`}>
                   <td>{share.material.name}</td>
                   <td>{share.percent.toFixed(1)}</td>
+                  <td>{((share.percent / 100) * totalVolumeMl).toFixed(2)}</td>
                   <td>
                     <span
                       className={`formula-status formula-status-${level}`}
@@ -87,6 +89,7 @@ export default function FormulaTable() {
               <tr>
                 <td>Total</td>
                 <td>{total.toFixed(1)}</td>
+                <td>{totalVolumeMl.toFixed(2)}</td>
                 <td></td>
               </tr>
             </tfoot>

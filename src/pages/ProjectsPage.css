@@ -1,6 +1,6 @@
 .projects-page {
   padding: 2.5rem 2rem 4rem;
-  max-width: 1080px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -34,11 +34,21 @@
   color: #b23b3b;
 }
 
-.projects-section {
-  margin-bottom: 2.5rem;
+.projects-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.projects-section h2 {
+.projects-column {
+  background: #fff;
+  border: 1px solid #ece7dc;
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.projects-column h2 {
   font-size: 1.05rem;
   color: #2b2a28;
   margin: 0 0 1rem;
@@ -47,57 +57,73 @@
 .projects-empty {
   font-size: 0.85rem;
   color: #8a8373;
+  margin: 0;
 }
 
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+.projects-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
 }
 
-.project-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  background: #fff;
-  border: 1px solid #ece7dc;
-  border-radius: 14px;
-  padding: 1.25rem;
-  color: #a7813a;
-}
-
-.project-card-draft {
-  border-style: dashed;
-}
-
-.project-card-clickable {
+.projects-table th {
   text-align: left;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.project-card-clickable:hover {
-  border-color: #c9a24a;
-  box-shadow: 0 2px 10px rgba(201, 162, 74, 0.15);
-}
-
-.project-card-name {
-  font-size: 0.95rem;
-  color: #2b2a28;
-  font-weight: 600;
-}
-
-.project-card-date {
-  font-size: 0.75rem;
   color: #8a8373;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0 0 0.5rem;
+  border-bottom: 1px solid #ece4cf;
+}
+
+.projects-table tbody tr {
+  cursor: pointer;
+}
+
+.projects-table tbody tr:hover {
+  background: #f9f6ef;
+}
+
+.projects-table td {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f5f0e2;
+  vertical-align: middle;
+}
+
+.projects-table-name {
+  display: block;
+  font-weight: 600;
+  color: #2b2a28;
+}
+
+.projects-table-date {
+  color: #8a8373;
+  white-space: nowrap;
+}
+
+.projects-table-project {
+  color: #5c5647;
+  font-size: 0.8rem;
+}
+
+.projects-table-personal {
+  color: #b7ae9a;
+  font-style: italic;
+}
+
+.project-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #eef0fb;
+  color: #4a4ea0;
 }
 
 .project-card-delete {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
   background: none;
   border: none;
   color: #8a8373;
@@ -114,4 +140,10 @@
 .project-card-delete:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 800px) {
+  .projects-columns {
+    grid-template-columns: 1fr;
+  }
 }

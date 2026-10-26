@@ -1,0 +1,140 @@
+.client-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: #8a8373;
+}
+
+.formula-settings-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #a79a7e;
+}
+
+.formula-type-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f5f2ea;
+  border-radius: 999px;
+  padding: 3px;
+  width: fit-content;
+}
+
+.formula-type-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #8a8373;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formula-type-toggle button:hover {
+  color: #a7813a;
+}
+
+.formula-type-toggle button.active {
+  background: #fff;
+  color: #a7813a;
+  box-shadow: 0 1px 4px rgba(43, 42, 40, 0.1);
+}
+
+.client-picker-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.formula-select {
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: #2b2a28;
+  background: #f8f6f0;
+  border: 1px solid #ece7dc;
+  border-radius: 999px;
+  padding: 0.36rem 0.8rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.formula-select:hover,
+.formula-select:focus {
+  border-color: #c9a24a;
+}
+
+.client-picker-draft {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.client-picker-draft input {
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: #2b2a28;
+  background: #f8f6f0;
+  border: 1px solid #ece7dc;
+  border-radius: 999px;
+  padding: 0.36rem 0.8rem;
+  outline: none;
+  min-width: 160px;
+}
+
+.client-picker-draft input:focus {
+  border-color: #c9a24a;
+}
+
+.client-picker-confirm,
+.client-picker-cancel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.client-picker-confirm {
+  background: #c9a24a;
+  color: #fff;
+}
+
+.client-picker-confirm:hover {
+  background: #b68e38;
+}
+
+.client-picker-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.client-picker-cancel {
+  background: #f5f2ea;
+  color: #5c5647;
+}
+
+.client-picker-cancel:hover {
+  background: #ece4cf;
+}
+
+.client-picker-error {
+  font-size: 0.75rem;
+  color: #b23b3b;
+}

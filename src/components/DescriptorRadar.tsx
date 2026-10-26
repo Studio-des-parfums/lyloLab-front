@@ -75,7 +75,6 @@ export default function DescriptorRadar({ descriptors }: DescriptorRadarProps) {
 
       {keys.map((key, i) => {
         const value = descriptors[key] ?? 0
-        if (value === 0) return null
         const angle = (Math.PI * 2 * i) / total - Math.PI / 2
         const labelR = RADIUS + 22
         const x = CENTER + labelR * Math.cos(angle)
@@ -88,8 +87,8 @@ export default function DescriptorRadar({ descriptors }: DescriptorRadarProps) {
             x={x}
             y={y}
             textAnchor={textAnchor}
-            fontSize={11}
-            fill="#5c5647"
+            fontSize={10}
+            fill={value > 0 ? '#5c5647' : '#c4bda8'}
           >
             {key}
           </text>

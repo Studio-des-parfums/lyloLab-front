@@ -111,6 +111,86 @@
   color: #8a8373;
 }
 
+.detail-origin-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
+.detail-origin-synthetic {
+  background: #eef0fb;
+  color: #4a4ea0;
+}
+
+.detail-origin-natural {
+  background: #eef5ea;
+  color: #4a7a3a;
+}
+
+.detail-recipe {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #ece4cf;
+}
+
+.detail-recipe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-recipe-header h4 {
+  font-size: 0.82rem;
+  color: #2b2a28;
+  margin: 0;
+}
+
+.detail-recipe-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f5f0e2;
+  color: #a7813a;
+  border: none;
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.detail-recipe-link:hover {
+  background: #ece4cf;
+}
+
+.detail-recipe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.detail-recipe-table th {
+  text-align: left;
+  color: #8a8373;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #ece4cf;
+}
+
+.detail-recipe-table td {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #f5f0e2;
+  color: #2b2a28;
+}
+
 .detail-regulatory {
   margin-top: 1.75rem;
   padding-top: 1.5rem;
@@ -120,6 +200,13 @@
 .detail-regulatory h4 {
   font-size: 0.82rem;
   color: #2b2a28;
+  margin: 0 0 0.75rem;
+}
+
+.detail-regulatory-disclaimer {
+  font-size: 0.76rem;
+  color: #8a8373;
+  font-style: italic;
   margin: 0 0 0.75rem;
 }
 
@@ -170,4 +257,212 @@
   font-size: 0.82rem;
   color: #2b2a28;
   margin: 0;
+}
+
+.detail-stock-total {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #a7813a;
+}
+
+.detail-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  padding-right: 2rem;
+}
+
+.detail-header-row .detail-name {
+  margin: 0;
+  padding-right: 0;
+  flex: 1;
+}
+
+.detail-edit-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f5f0e2;
+  color: #a7813a;
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.detail-edit-toggle:hover {
+  background: #ece4cf;
+}
+
+.detail-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-right: 2rem;
+}
+
+.detail-edit-title {
+  font-family: 'Georgia', serif;
+  font-size: 1.35rem;
+  color: #2b2a28;
+  margin: 0;
+}
+
+.detail-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem 1rem;
+}
+
+.detail-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: #8a8373;
+}
+
+.detail-edit-field-wide {
+  grid-column: span 2;
+}
+
+.detail-edit-field input,
+.detail-edit-field textarea,
+.detail-edit-field select {
+  font-size: 0.85rem;
+  color: #2b2a28;
+  border: 1px solid #ece7dc;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+  font-family: inherit;
+  background: #fff;
+  resize: vertical;
+}
+
+.detail-edit-field input:focus,
+.detail-edit-field textarea:focus,
+.detail-edit-field select:focus {
+  border-color: #c9a24a;
+}
+
+.detail-edit-section {
+  border-top: 1px solid #f5f0e2;
+  padding-top: 0.9rem;
+}
+
+.detail-edit-section h4 {
+  font-size: 0.82rem;
+  color: #2b2a28;
+  margin: 0 0 0.6rem;
+}
+
+.detail-edit-descriptors {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem 0.8rem;
+}
+
+.detail-edit-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.detail-save-button {
+  background: #a7813a;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.detail-save-button:hover {
+  background: #8f6c2e;
+}
+
+.detail-save-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.detail-cancel-button {
+  background: transparent;
+  color: #5c5647;
+  border: 1px solid #ece7dc;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.detail-cancel-button:hover {
+  background: #f5f0e2;
+}
+
+.detail-edit-error {
+  font-size: 0.8rem;
+  color: #b23b3b;
+  margin: 0;
+}
+
+.detail-stock-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detail-stock-actions {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.detail-icon-button {
+  border: none;
+  background: #f5f0e2;
+  color: #5c5647;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.detail-icon-button:hover {
+  background: #ece4cf;
+}
+
+.detail-icon-button-danger:hover {
+  background: #fbe9e4;
+  color: #a4442b;
+}
+
+.detail-icon-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.detail-stock-form {
+  margin-top: 1rem;
+  background: #faf8f2;
+  border: 1px solid #f0ead9;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.detail-stock-form h5 {
+  font-size: 0.82rem;
+  color: #2b2a28;
+  margin: 0 0 0.8rem;
 }

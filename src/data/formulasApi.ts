@@ -10,14 +10,30 @@ export interface CreateFormulaPayload {
   facets: Record<string, number>
   adjustments: Record<string, number>
   lines: CreateFormulaLinePayload[]
+  totalVolumeMl?: number | null
   status?: FormulaStatus
+  projectId?: string | null
+}
+
+export interface FormulaProjectInfo {
+  id: string
+  name: string
+  client: {
+    id: string
+    company: string | null
+    contactFirstName: string | null
+    contactLastName: string | null
+  }
 }
 
 export interface FormulaSummary {
   id: string
   name: string
   status: FormulaStatus
+  totalVolumeMl: number | null
   createdAt: string
+  materializedAs: { id: string } | null
+  project: FormulaProjectInfo | null
 }
 
 export interface FormulaLineDetail {
@@ -42,8 +58,10 @@ export interface FormulaDetail {
   status: FormulaStatus
   facets: Record<string, number>
   adjustments: Record<string, number>
+  totalVolumeMl: number | null
   createdAt: string
   lines: FormulaLineDetail[]
+  project: FormulaProjectInfo | null
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -93,4 +111,15 @@ export async function finalizeFormula(id: string) {
 export async function deleteFormula(id: string) {
   const res = await fetch(`${API_URL}/api/formulas/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`Failed to delete formula (${res.status})`)
+}
+
+export async function convertFormulaToMaterial(id: string) {
+  const res = await fetch(`${API_URL}/api/formulas/${id}/convert-to-material`, {
+    method: 'POST',
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message ?? `Failed to convert formula (${res.status})`)
+  }
+  return res.json()
 }

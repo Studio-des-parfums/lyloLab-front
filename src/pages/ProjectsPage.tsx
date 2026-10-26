@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { FlaskConical, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Beaker, Copy } from 'lucide-react'
 import { deleteFormula, listFormulas, type FormulaSummary } from '../data/formulasApi'
 import { useFormula } from '../context/FormulaContext'
 import './ProjectsPage.css'
@@ -7,9 +7,14 @@ import './ProjectsPage.css'
 interface ProjectsPageProps {
   onCreateNew: () => void
   onViewFormula: (id: string) => void
+  onDuplicateFormula: (id: string) => void
 }
 
-export default function ProjectsPage({ onCreateNew, onViewFormula }: ProjectsPageProps) {
+export default function ProjectsPage({
+  onCreateNew,
+  onViewFormula,
+  onDuplicateFormula,
+}: ProjectsPageProps) {
   const { startNewFormula } = useFormula()
   const [formulas, setFormulas] = useState<FormulaSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,7 +29,7 @@ export default function ProjectsPage({ onCreateNew, onViewFormula }: ProjectsPag
     setLoading(true)
     setError(null)
     listFormulas()
-      .then(setFormulas)
+      .then((result) => setFormulas(result.filter((f) => !f.project)))
       .catch((err) => setError(err instanceof Error ? err.message : 'Erreur inconnue'))
       .finally(() => setLoading(false))
   }
@@ -49,7 +54,7 @@ export default function ProjectsPage({ onCreateNew, onViewFormula }: ProjectsPag
       <div className="projects-header">
         <div>
           <h1>Mes projets</h1>
-          <p>Retrouvez vos formules finalisées et vos brouillons en cours.</p>
+          <p>Retrouvez vos formules personnelles finalisées et vos brouillons en cours.</p>
         </div>
         <button
           type="button"
@@ -67,72 +72,112 @@ export default function ProjectsPage({ onCreateNew, onViewFormula }: ProjectsPag
       {error && <p className="projects-status projects-status-error">{error}</p>}
 
       {!loading && !error && (
-        <>
-          <section className="projects-section">
-            <h2>Formules ({completed.length})</h2>
-            {completed.length === 0 ? (
-              <p className="projects-empty">Aucune formule finalisée pour le moment.</p>
-            ) : (
-              <div className="projects-grid">
-                {completed.map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    className="project-card project-card-clickable"
-                    onClick={() => onViewFormula(f.id)}
-                  >
-                    <FlaskConical size={20} />
-                    <span className="project-card-name">{f.name}</span>
-                    <span className="project-card-date">
-                      {new Date(f.createdAt).toLocaleDateString()}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
+        <div className="projects-columns">
+          <FormulaTable
+            title={`Formules finalisées (${completed.length})`}
+            formulas={completed}
+            emptyLabel="Aucune formule finalisée pour le moment."
+            onViewFormula={onViewFormula}
+            onDuplicateFormula={onDuplicateFormula}
+          />
+          <FormulaTable
+            title={`Brouillons (${drafts.length})`}
+            formulas={drafts}
+            emptyLabel="Aucun brouillon en cours."
+            onViewFormula={onViewFormula}
+            onDuplicateFormula={onDuplicateFormula}
+            onDelete={handleDelete}
+            deletingId={deletingId}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
 
-          <section className="projects-section">
-            <h2>Brouillons ({drafts.length})</h2>
-            {drafts.length === 0 ? (
-              <p className="projects-empty">Aucun brouillon en cours.</p>
-            ) : (
-              <div className="projects-grid">
-                {drafts.map((f) => (
-                  <div
-                    key={f.id}
-                    className="project-card project-card-draft project-card-clickable"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => onViewFormula(f.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') onViewFormula(f.id)
-                    }}
-                  >
-                    <FlaskConical size={20} />
-                    <span className="project-card-name">{f.name}</span>
-                    <span className="project-card-date">
-                      {new Date(f.createdAt).toLocaleDateString()}
+interface FormulaTableProps {
+  title: string
+  formulas: FormulaSummary[]
+  emptyLabel: string
+  onViewFormula: (id: string) => void
+  onDuplicateFormula: (id: string) => void
+  onDelete?: (id: string) => void
+  deletingId?: string | null
+}
+
+function FormulaTable({
+  title,
+  formulas,
+  emptyLabel,
+  onViewFormula,
+  onDuplicateFormula,
+  onDelete,
+  deletingId,
+}: FormulaTableProps) {
+  return (
+    <section className="projects-column">
+      <h2>{title}</h2>
+      {formulas.length === 0 ? (
+        <p className="projects-empty">{emptyLabel}</p>
+      ) : (
+        <table className="projects-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Date</th>
+              <th />
+              {onDelete && <th />}
+            </tr>
+          </thead>
+          <tbody>
+            {formulas.map((f) => (
+              <tr key={f.id} onClick={() => onViewFormula(f.id)}>
+                <td>
+                  <span className="projects-table-name">{f.name}</span>
+                  {f.materializedAs && (
+                    <span className="project-card-tag">
+                      <Beaker size={11} /> Transformée en matière première
                     </span>
+                  )}
+                </td>
+                <td className="projects-table-date">
+                  {new Date(f.createdAt).toLocaleDateString()}
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    className="project-card-delete"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDuplicateFormula(f.id)
+                    }}
+                    aria-label="Dupliquer en nouvelle version"
+                    title="Dupliquer en nouvelle version"
+                  >
+                    <Copy size={16} />
+                  </button>
+                </td>
+                {onDelete && (
+                  <td>
                     <button
                       type="button"
                       className="project-card-delete"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleDelete(f.id)
+                        onDelete(f.id)
                       }}
                       disabled={deletingId === f.id}
                       aria-label="Supprimer le brouillon"
                     >
                       <Trash2 size={16} />
                     </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
-    </div>
+    </section>
   )
 }

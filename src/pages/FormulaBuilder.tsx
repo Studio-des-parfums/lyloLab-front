@@ -1,6 +1,8 @@
-import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle2, FlaskConical, Copy } from 'lucide-react'
 import { useFormula } from '../context/FormulaContext'
 import FormulaNameEditor from '../components/FormulaNameEditor'
+import FormulaVolumeInput from '../components/FormulaVolumeInput'
+import ClientProjectPicker from '../components/ClientProjectPicker'
 import OlfactiveRadar from '../components/OlfactiveRadar'
 import OlfactiveRendering from '../components/OlfactiveRendering'
 import OlfactivePyramid from '../components/OlfactivePyramid'
@@ -21,11 +23,19 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
     saveStatus,
     saveError,
     saveFormula,
+    formulaId,
     formulaStatus,
     finalizeStatus,
     finalizeError,
     finalizeCurrentFormula,
+    convertStatus,
+    convertError,
+    convertCurrentFormulaToMaterial,
+    duplicateFormula,
+    loadStatus,
+    projectId,
   } = useFormula()
+  const isClientProjectFormula = projectId !== null
 
   if (catalogLoading) {
     return (
@@ -54,6 +64,10 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
             <ArrowLeft size={16} /> Retour
           </button>
           <FormulaNameEditor />
+          <div className="builder-settings">
+            <ClientProjectPicker />
+            <FormulaVolumeInput />
+          </div>
           {saveStatus === 'success' && (
             <p className="dashboard-save-status dashboard-save-success">
               Formule enregistrée avec succès.
@@ -72,6 +86,16 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
           {finalizeStatus === 'error' && (
             <p className="dashboard-save-status dashboard-save-error">
               {finalizeError}
+            </p>
+          )}
+          {convertStatus === 'success' && (
+            <p className="dashboard-save-status dashboard-save-success">
+              Formule transformée en matière première synthétique.
+            </p>
+          )}
+          {convertStatus === 'error' && (
+            <p className="dashboard-save-status dashboard-save-error">
+              {convertError}
             </p>
           )}
         </div>
@@ -94,6 +118,29 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
             <CheckCircle2 size={16} />
             {formulaStatus === 'completed' ? 'Formule finalisée' : 'Finaliser'}
           </button>
+          {!isClientProjectFormula && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={convertCurrentFormulaToMaterial}
+              disabled={convertStatus === 'saving'}
+            >
+              <FlaskConical size={16} />
+              {convertStatus === 'saving'
+                ? 'Transformation...'
+                : 'Transformer en matière première'}
+            </button>
+          )}
+          {!isClientProjectFormula && formulaId && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => duplicateFormula(formulaId)}
+              disabled={loadStatus === 'saving'}
+            >
+              <Copy size={16} /> Dupliquer en nouvelle version
+            </button>
+          )}
         </div>
       </div>
 

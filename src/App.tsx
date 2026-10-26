@@ -3,71 +3,110 @@ import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import DashboardPlaceholder from './pages/DashboardPlaceholder'
 import MaterialsLibrary from './pages/MaterialsLibrary'
-import FormulationIntro from './pages/FormulationIntro'
 import FormulaBuilder from './pages/FormulaBuilder'
 import ProjectsPage from './pages/ProjectsPage'
+import ClientsPage from './pages/ClientsPage'
 import { FormulaProvider, useFormula } from './context/FormulaContext'
 import './App.css'
 
+type FormulationView = 'list' | 'builder'
+type BuilderOrigin = { type: 'formulas' } | { type: 'clientProject'; projectId: string }
+
 function AppContent() {
   const [active, setActive] = useState('dashboard')
-  const [formulationStarted, setFormulationStarted] = useState(false)
-  const [showMyFormulas, setShowMyFormulas] = useState(false)
-  const [builderOrigin, setBuilderOrigin] = useState<'intro' | 'myFormulas'>('intro')
-  const { loadFormula } = useFormula()
+  const [formulationView, setFormulationView] = useState<FormulationView>('list')
+  const [builderOrigin, setBuilderOrigin] = useState<BuilderOrigin>({ type: 'formulas' })
+  const [openProjectId, setOpenProjectId] = useState<string | null>(null)
+  const { loadFormula, startNewFormula, setProjectId, duplicateFormula } = useFormula()
 
   function handleSelect(key: string) {
-    if (key !== 'formulation') setFormulationStarted(false)
-    setShowMyFormulas(false)
+    if (key === 'formulation') setFormulationView('list')
+    if (key !== 'clients') setOpenProjectId(null)
     setActive(key)
   }
 
-  function handleCreateNewFromMyFormulas() {
-    setShowMyFormulas(false)
+  function handleCreateNew() {
+    startNewFormula()
+    setBuilderOrigin({ type: 'formulas' })
+    setFormulationView('builder')
+  }
+
+  function handleCreateFormulaForProject(projectId: string) {
+    startNewFormula()
+    setProjectId(projectId)
+    setBuilderOrigin({ type: 'clientProject', projectId })
     setActive('formulation')
-    setBuilderOrigin('myFormulas')
-    setFormulationStarted(true)
+    setFormulationView('builder')
   }
 
   async function handleViewFormula(id: string) {
     await loadFormula(id)
-    setShowMyFormulas(false)
-    setActive('formulation')
-    setBuilderOrigin('myFormulas')
-    setFormulationStarted(true)
+    setBuilderOrigin({ type: 'formulas' })
+    setFormulationView('builder')
   }
 
   function handleBackFromBuilder() {
-    setFormulationStarted(false)
-    if (builderOrigin === 'myFormulas') {
-      setShowMyFormulas(true)
+    if (builderOrigin.type === 'clientProject') {
+      setOpenProjectId(builderOrigin.projectId)
+      setActive('clients')
+    } else {
+      setFormulationView('list')
     }
   }
 
-  function renderContent() {
-    if (showMyFormulas) {
-      return (
-        <ProjectsPage
-          onCreateNew={handleCreateNewFromMyFormulas}
-          onViewFormula={handleViewFormula}
-        />
-      )
-    }
+  async function handleGoToFormula(id: string) {
+    await loadFormula(id)
+    setBuilderOrigin({ type: 'formulas' })
+    setActive('formulation')
+    setFormulationView('builder')
+  }
 
+  async function handleViewFormulaFromProject(id: string, projectId: string) {
+    await loadFormula(id)
+    setBuilderOrigin({ type: 'clientProject', projectId })
+    setActive('formulation')
+    setFormulationView('builder')
+  }
+
+  async function handleDuplicateFormula(id: string) {
+    await duplicateFormula(id)
+    setBuilderOrigin({ type: 'formulas' })
+    setFormulationView('builder')
+  }
+
+  async function handleDuplicateFormulaFromProject(id: string, projectId: string) {
+    await duplicateFormula(id)
+    setBuilderOrigin({ type: 'clientProject', projectId })
+    setActive('formulation')
+    setFormulationView('builder')
+  }
+
+  function renderContent() {
     switch (active) {
-      case 'materials':
-        return <MaterialsLibrary />
-      case 'formulation':
-        return formulationStarted ? (
-          <FormulaBuilder onBack={handleBackFromBuilder} />
-        ) : (
-          <FormulationIntro
-            onStart={() => {
-              setBuilderOrigin('intro')
-              setFormulationStarted(true)
-            }}
+      case 'clients':
+        return (
+          <ClientsPage
+            onViewFormula={handleViewFormulaFromProject}
+            onCreateFormula={handleCreateFormulaForProject}
+            onDuplicateFormula={handleDuplicateFormulaFromProject}
+            openProjectId={openProjectId}
           />
         )
+      case 'materials':
+        return <MaterialsLibrary onGoToFormula={handleGoToFormula} />
+      case 'formulation':
+        switch (formulationView) {
+          case 'builder':
+            return <FormulaBuilder onBack={handleBackFromBuilder} />
+          default:
+            return (
+              <ProjectsPage
+                onCreateNew={handleCreateNew}
+                onViewFormula={handleViewFormula}
+                onDuplicateFormula={handleDuplicateFormula}
+              />
+            )
+        }
       default:
         return <DashboardPlaceholder />
     }
@@ -77,10 +116,7 @@ function AppContent() {
     <div className="app-layout">
       <Sidebar active={active} onSelect={handleSelect} />
       <div className="app-main">
-        <TopBar
-          onOpenMyFormulas={() => setShowMyFormulas(true)}
-          myFormulasActive={showMyFormulas}
-        />
+        <TopBar />
         {renderContent()}
       </div>
     </div>
