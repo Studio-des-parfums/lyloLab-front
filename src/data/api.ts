@@ -1,4 +1,15 @@
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+/**
+ * Backend origin, as set in VITE_API_URL at build time. Tolerates the usual
+ * slips: without a protocol the browser would treat it as a path of the
+ * frontend's own site, and a trailing "/api" would double every route.
+ */
+function normalizeApiUrl(raw: string | undefined): string {
+  let url = (raw ?? 'http://localhost:3000').trim().replace(/\/+$/, '')
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`
+  return url.replace(/\/api$/i, '')
+}
+
+export const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL)
 
 const TOKEN_KEY = 'lylo.session'
 
