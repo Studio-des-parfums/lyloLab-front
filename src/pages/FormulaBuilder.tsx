@@ -25,6 +25,7 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
     saveError,
     saveFormula,
     formulaId,
+    formulaOrigin,
     formulaStatus,
     isLocked,
     finalizeStatus,
@@ -66,6 +67,16 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
             <ArrowLeft size={16} /> Retour
           </button>
           <FormulaNameEditor />
+          {formulaOrigin && (
+            <p className="dashboard-origin">
+              Créée{formulaOrigin.author ? ` par ${formulaOrigin.author}` : ''} le{' '}
+              {new Date(formulaOrigin.createdAt).toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
+          )}
           <div className="builder-settings">
             <ClientProjectPicker />
             <FormulaVolumeInput />

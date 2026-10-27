@@ -22,8 +22,10 @@ import {
   convertFormulaToMaterial,
   createFormula,
   finalizeFormula,
+  formulaAuthor,
   getFormula,
   updateFormula,
+  type FormulaDetail,
 } from '../data/formulasApi'
 import {
   createClient as apiCreateClient,
@@ -85,6 +87,8 @@ interface FormulaContextValue {
   saveFormula: () => Promise<void>
 
   formulaId: string | null
+  /** Author and creation date of the saved formula; null for a new, unsaved one. */
+  formulaOrigin: { author: string | null; createdAt: string } | null
   formulaStatus: 'draft' | 'completed'
   /** A finalized formula is read-only: it can only be duplicated into a new version. */
   isLocked: boolean
@@ -112,6 +116,10 @@ interface FormulaContextValue {
 
 const FormulaContext = createContext<FormulaContextValue | null>(null)
 
+function originOf(formula: FormulaDetail) {
+  return { author: formulaAuthor(formula), createdAt: formula.createdAt }
+}
+
 export function FormulaProvider({ children }: { children: ReactNode }) {
   const [catalog, setCatalog] = useState<Material[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
@@ -132,6 +140,8 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const [formulaId, setFormulaId] = useState<string | null>(null)
+  const [formulaOrigin, setFormulaOrigin] =
+    useState<FormulaContextValue['formulaOrigin']>(null)
   const [formulaStatus, setFormulaStatus] = useState<'draft' | 'completed'>('draft')
   const [finalizeStatus, setFinalizeStatus] = useState<SaveStatus>('idle')
   const [finalizeError, setFinalizeError] = useState<string | null>(null)
@@ -410,6 +420,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       : await createFormula({ ...payload, status: 'draft' as const })
 
     setFormulaId(saved.id)
+    setFormulaOrigin(originOf(saved))
     setFormulaStatus(saved.status ?? 'draft')
     return saved
   }
@@ -483,6 +494,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       // comparing against them below keeps the saved quantities exact.
       const loadedAdjustments = adjustmentsFromFacets(loadedFacets, baselineFacets)
       setFormulaId(detail.id)
+      setFormulaOrigin(originOf(detail))
       setFormulaStatus(detail.status)
       setFormulaName(detail.name)
       setTotalVolumeMlState(volume)
@@ -518,6 +530,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       // comparing against them below keeps the saved quantities exact.
       const loadedAdjustments = adjustmentsFromFacets(loadedFacets, baselineFacets)
       setFormulaId(null)
+      setFormulaOrigin(null)
       setFormulaStatus('draft')
       setFormulaName(nextVersionedName(detail.name))
       setTotalVolumeMlState(volume)
@@ -564,6 +577,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
   function startNewFormula() {
     setFormulaId(null)
+    setFormulaOrigin(null)
     setFormulaStatus('draft')
     setSaveStatus('idle')
     setSaveError(null)
@@ -622,6 +636,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       saveError,
       saveFormula,
       formulaId,
+      formulaOrigin,
       formulaStatus,
       isLocked,
       finalizeStatus,
@@ -656,6 +671,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       saveStatus,
       saveError,
       formulaId,
+      formulaOrigin,
       formulaStatus,
       isLocked,
       finalizeStatus,

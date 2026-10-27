@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Search, LayoutGrid, List, FlaskConical, Leaf } from 'lucide-react'
+import { Search, LayoutGrid, List, FlaskConical, Leaf, Upload } from 'lucide-react'
 import { useFormula } from '../context/FormulaContext'
 import {
   distinctValues,
@@ -11,6 +11,7 @@ import {
 } from '../data/materials'
 import { dominantDescriptor, displayForDescriptor } from '../data/descriptorIcons'
 import MaterialDetail from '../components/MaterialDetail'
+import ImportMaterialsModal from '../components/ImportMaterialsModal'
 import './MaterialsLibrary.css'
 
 type ViewMode = 'grid' | 'list'
@@ -20,7 +21,8 @@ interface MaterialsLibraryProps {
 }
 
 export default function MaterialsLibrary({ onGoToFormula }: MaterialsLibraryProps) {
-  const { catalog, catalogLoading, catalogError } = useFormula()
+  const { catalog, catalogLoading, catalogError, refreshCatalog } = useFormula()
+  const [importOpen, setImportOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [descriptorFilter, setDescriptorFilter] = useState('')
   const [natureFilter, setNatureFilter] = useState<'' | MaterialOrigin>('')
@@ -86,23 +88,28 @@ export default function MaterialsLibrary({ onGoToFormula }: MaterialsLibraryProp
           </p>
         </div>
 
-        <div className="library-view-toggle">
-          <button
-            type="button"
-            className={viewMode === 'grid' ? 'active' : ''}
-            onClick={() => setViewMode('grid')}
-            aria-label="Vue grille"
-          >
-            <LayoutGrid size={16} />
+        <div className="library-header-actions">
+          <button type="button" className="btn btn-outline" onClick={() => setImportOpen(true)}>
+            <Upload size={16} /> Importer un fichier
           </button>
-          <button
-            type="button"
-            className={viewMode === 'list' ? 'active' : ''}
-            onClick={() => setViewMode('list')}
-            aria-label="Vue liste"
-          >
-            <List size={16} />
-          </button>
+          <div className="library-view-toggle">
+            <button
+              type="button"
+              className={viewMode === 'grid' ? 'active' : ''}
+              onClick={() => setViewMode('grid')}
+              aria-label="Vue grille"
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              type="button"
+              className={viewMode === 'list' ? 'active' : ''}
+              onClick={() => setViewMode('list')}
+              aria-label="Vue liste"
+            >
+              <List size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -218,6 +225,17 @@ export default function MaterialsLibrary({ onGoToFormula }: MaterialsLibraryProp
             ))}
           </tbody>
         </table>
+      )}
+
+      {importOpen && (
+        <ImportMaterialsModal
+          onClose={() => setImportOpen(false)}
+          onImported={() => {
+            refreshCatalog().catch(() => {
+              /* the catalog stays as it was; it reloads on the next visit */
+            })
+          }}
+        />
       )}
 
       {selected && (

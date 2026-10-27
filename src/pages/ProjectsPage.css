@@ -95,6 +95,11 @@
   color: #2b2a28;
 }
 
+.projects-table-author {
+  color: #5c5647;
+  white-space: nowrap;
+}
+
 .projects-table-date {
   color: #8a8373;
   white-space: nowrap;

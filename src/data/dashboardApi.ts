@@ -26,6 +26,8 @@ export interface DashboardDraft {
   name: string
   createdAt: string
   materialCount: number
+  /** Null for drafts created before authors were tracked. */
+  author: string | null
   projectId: string | null
   projectName: string | null
   clientName: string | null

@@ -240,7 +240,8 @@ export default function DashboardPage({
                             {draft.projectName
                               ? `${draft.clientName} · ${draft.projectName}`
                               : 'Formule personnelle'}{' '}
-                            · {plural(draft.materialCount, 'matière')} · créée le{' '}
+                            · {plural(draft.materialCount, 'matière')} · créée
+                            {draft.author ? ` par ${draft.author}` : ''} le{' '}
                             {dateFormat.format(new Date(draft.createdAt))}
                           </span>
                         </span>

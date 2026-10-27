@@ -1,6 +1,7 @@
 import { API_URL, apiFetch } from './api'
+import type { FormulaAuthorInfo } from './formulasApi'
 
-export interface ProjectFormulaSummary {
+export interface ProjectFormulaSummary extends FormulaAuthorInfo {
   id: string
   name: string
   status: 'draft' | 'completed'

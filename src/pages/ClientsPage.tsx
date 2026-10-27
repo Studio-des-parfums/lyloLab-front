@@ -11,6 +11,7 @@ import {
   type ProjectDetail,
 } from '../data/clientsApi'
 import { useFormula } from '../context/FormulaContext'
+import { formulaAuthor } from '../data/formulasApi'
 import './ClientsPage.css'
 
 interface ClientsPageProps {
@@ -676,6 +677,7 @@ function ProjectDetailView({
               <tr>
                 <th>Nom</th>
                 <th>Statut</th>
+                <th>Créée par</th>
                 <th>Date</th>
                 <th />
               </tr>
@@ -692,6 +694,7 @@ function ProjectDetailView({
                     )}
                   </td>
                   <td>{f.status === 'completed' ? 'Finalisée' : 'Brouillon'}</td>
+                  <td className="projects-table-author">{formulaAuthor(f) ?? '—'}</td>
                   <td className="projects-table-date">
                     {new Date(f.createdAt).toLocaleDateString()}
                   </td>

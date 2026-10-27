@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Plus, Trash2, Beaker, Copy } from 'lucide-react'
-import { deleteFormula, listFormulas, type FormulaSummary } from '../data/formulasApi'
+import {
+  deleteFormula,
+  formulaAuthor,
+  listFormulas,
+  type FormulaSummary,
+} from '../data/formulasApi'
 import { useFormula } from '../context/FormulaContext'
 import './ProjectsPage.css'
 
@@ -124,6 +129,7 @@ function FormulaTable({
           <thead>
             <tr>
               <th>Nom</th>
+              <th>Créée par</th>
               <th>Date</th>
               <th />
               {onDelete && <th />}
@@ -140,6 +146,7 @@ function FormulaTable({
                     </span>
                   )}
                 </td>
+                <td className="projects-table-author">{formulaAuthor(f) ?? '—'}</td>
                 <td className="projects-table-date">
                   {new Date(f.createdAt).toLocaleDateString()}
                 </td>

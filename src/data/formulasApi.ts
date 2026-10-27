@@ -28,7 +28,18 @@ export interface FormulaProjectInfo {
   }
 }
 
-export interface FormulaSummary {
+/** Who created a formula: the live account, or the name kept once that account is removed. */
+export interface FormulaAuthorInfo {
+  createdBy: { id: string; name: string } | null
+  createdByName: string | null
+}
+
+/** Name to show as the formula's author, or null for formulas made before authors were tracked. */
+export function formulaAuthor(formula: FormulaAuthorInfo): string | null {
+  return formula.createdBy?.name ?? formula.createdByName
+}
+
+export interface FormulaSummary extends FormulaAuthorInfo {
   id: string
   name: string
   status: FormulaStatus
@@ -54,7 +65,7 @@ export interface FormulaLineDetail {
   }
 }
 
-export interface FormulaDetail {
+export interface FormulaDetail extends FormulaAuthorInfo {
   id: string
   name: string
   status: FormulaStatus
@@ -66,7 +77,7 @@ export interface FormulaDetail {
   project: FormulaProjectInfo | null
 }
 
-export async function createFormula(payload: CreateFormulaPayload) {
+export async function createFormula(payload: CreateFormulaPayload): Promise<FormulaDetail> {
   const res = await apiFetch(`${API_URL}/api/formulas`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -76,7 +87,10 @@ export async function createFormula(payload: CreateFormulaPayload) {
   return res.json()
 }
 
-export async function updateFormula(id: string, payload: CreateFormulaPayload) {
+export async function updateFormula(
+  id: string,
+  payload: CreateFormulaPayload,
+): Promise<FormulaDetail> {
   const res = await apiFetch(`${API_URL}/api/formulas/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
