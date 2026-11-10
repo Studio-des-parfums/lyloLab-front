@@ -71,7 +71,7 @@
   color: #8a8373;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 0 0 0.5rem;
+  padding: 0 1.25rem 0.5rem 0;
   border-bottom: 1px solid #ece4cf;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .projects-table td {
-  padding: 0.6rem 0;
+  padding: 0.6rem 1.25rem 0.6rem 0;
   border-bottom: 1px solid #f5f0e2;
   vertical-align: middle;
 }
@@ -151,4 +151,10 @@
   .projects-columns {
     grid-template-columns: 1fr;
   }
+}
+
+/* No trailing gap after the last column. */
+.projects-table th:last-child,
+.projects-table td:last-child {
+  padding-right: 0;
 }

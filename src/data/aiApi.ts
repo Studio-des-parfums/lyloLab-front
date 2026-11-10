@@ -1,4 +1,4 @@
-import { API_URL, apiFetch } from './api'
+import { API_URL, apiFetch, readErrorMessage } from './api'
 
 /** A change proposed by the formulation assistant (see backend/src/ai/formula-changes.ts). */
 export type FormulaChange =
@@ -66,6 +66,64 @@ export async function sendChat(
     throw new Error(body?.message ?? `L'assistant IA n'a pas répondu (${res.status})`)
   }
   return res.json()
+}
+
+export interface StreamHandlers {
+  onDelta: (text: string) => void
+  onStatus?: (status: 'search' | 'catalog') => void
+  signal?: AbortSignal
+}
+
+type StreamEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'status'; status: 'search' | 'catalog' }
+  | ({ type: 'done' } & ChatResponse)
+  | { type: 'error'; message: string }
+
+/** Like sendChat, but the message text arrives token by token through onDelta. */
+export async function streamChat(
+  messages: ChatMessagePayload[],
+  formula: FormulaSnapshot,
+  { onDelta, onStatus, signal }: StreamHandlers,
+): Promise<ChatResponse> {
+  const res = await apiFetch(`${API_URL}/api/ai/chat/stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+    body: JSON.stringify({ messages, formula }),
+    signal,
+  })
+  if (!res.ok || !res.body) {
+    throw new Error(await readErrorMessage(res, "L'assistant IA n'a pas répondu"))
+  }
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  for (;;) {
+    const { value, done } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let sep: number
+    while ((sep = buffer.indexOf('\n\n')) !== -1) {
+      const raw = buffer.slice(0, sep)
+      buffer = buffer.slice(sep + 2)
+      const data = raw
+        .split('\n')
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice(5).trimStart())
+        .join('\n')
+      if (!data) continue
+      const event = JSON.parse(data) as StreamEvent
+      if (event.type === 'delta') onDelta(event.text)
+      else if (event.type === 'status') onStatus?.(event.status)
+      else if (event.type === 'error') throw new Error(event.message)
+      else {
+        const { type: _type, ...response } = event
+        return response
+      }
+    }
+  }
+  throw new Error("La réponse de l'assistant IA a été interrompue, réessayez.")
 }
 
 export function describeChange(change: FormulaChange): string {

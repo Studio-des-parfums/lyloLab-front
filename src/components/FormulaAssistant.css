@@ -342,3 +342,21 @@
   background: #ddd5c0;
   cursor: not-allowed;
 }
+
+/* Caret shown while the answer is being streamed. */
+.assistant-streaming::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: assistant-caret 1s steps(1) infinite;
+}
+
+@keyframes assistant-caret {
+  50% {
+    opacity: 0;
+  }
+}

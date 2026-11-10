@@ -5,7 +5,7 @@ import { applyManualMl, computeFormulaShares } from '../data/formulaEngine'
 import { evaluateFormulaCompliance } from '../data/ifraCompliance'
 import {
   describeChange,
-  sendChat,
+  streamChat,
   type ChatMessagePayload,
   type ChatSource,
   type FormulaProposal,
@@ -23,6 +23,7 @@ interface ChatEntry {
   warnings?: string[]
   sources?: ChatSource[]
   decision?: Decision
+  streaming?: boolean
 }
 
 const DECISION_LABEL: Record<Decision, string> = {
@@ -64,13 +65,24 @@ export default function FormulaAssistant() {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [phase, setPhase] = useState<'thinking' | 'search' | 'catalog' | 'writing'>('thinking')
+  const abortRef = useRef<AbortController | null>(null)
   const nextId = useRef(1)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
-  }, [entries, sending, open])
+    listRef.current?.scrollTo({
+      top: listRef.current.scrollHeight,
+      behavior: phase === 'writing' ? 'auto' : 'smooth',
+    })
+  }, [entries, sending, open, phase])
+
+  // Stop a running answer when the panel closes or the page unmounts.
+  useEffect(() => {
+    if (!open) abortRef.current?.abort()
+  }, [open])
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   useEffect(() => {
     if (open) inputRef.current?.focus()
@@ -110,23 +122,53 @@ export default function FormulaAssistant() {
     setError(null)
     setSending(true)
 
+    setPhase('thinking')
+
+    const controller = new AbortController()
+    abortRef.current = controller
+    const assistantId = nextId.current++
+    let started = false
+
     try {
-      const response = await sendChat(toPayload(conversation), snapshot())
-      setEntries((prev) => [
-        ...prev,
-        {
-          id: nextId.current++,
-          role: 'assistant',
-          content: response.message,
-          proposal: response.proposal,
-          warnings: response.warnings,
-          sources: response.sources,
-          decision: response.proposal ? 'pending' : undefined,
+      const response = await streamChat(toPayload(conversation), snapshot(), {
+        signal: controller.signal,
+        onStatus: (status) => setPhase((p) => (p === 'writing' ? p : status)),
+        onDelta: (text) => {
+          if (!started) {
+            started = true
+            setPhase('writing')
+            setEntries((prev) => [
+              ...prev,
+              { id: assistantId, role: 'assistant', content: text, streaming: true },
+            ])
+          } else {
+            setEntries((prev) =>
+              prev.map((e) => (e.id === assistantId ? { ...e, content: e.content + text } : e)),
+            )
+          }
         },
-      ])
+      })
+      const final: ChatEntry = {
+        id: assistantId,
+        role: 'assistant',
+        content: response.message,
+        proposal: response.proposal,
+        warnings: response.warnings,
+        sources: response.sources,
+        decision: response.proposal ? 'pending' : undefined,
+      }
+      setEntries((prev) =>
+        started ? prev.map((e) => (e.id === assistantId ? final : e)) : [...prev, final],
+      )
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      setEntries((prev) =>
+        prev.map((e) => (e.id === assistantId ? { ...e, streaming: false } : e)),
+      )
+      if (!controller.signal.aborted) {
+        setError(err instanceof Error ? err.message : 'Erreur inconnue')
+      }
     } finally {
+      if (abortRef.current === controller) abortRef.current = null
       setSending(false)
     }
   }
@@ -159,7 +201,15 @@ export default function FormulaAssistant() {
         <div className="assistant-header-text">
           <span className="assistant-title">Assistant formulation</span>
           <span className="assistant-subtitle">
-            {sending ? 'Réflexion et recherche…' : 'Propose, vous validez'}
+            {!sending
+              ? 'Propose, vous validez'
+              : phase === 'search'
+                ? 'Recherche web…'
+                : phase === 'catalog'
+                  ? 'Consultation du catalogue…'
+                : phase === 'writing'
+                  ? 'Rédaction…'
+                  : 'Réflexion…'}
           </span>
         </div>
         <button
@@ -181,7 +231,7 @@ export default function FormulaAssistant() {
             className={`assistant-row assistant-row-${entry.role === 'user' ? 'user' : 'ai'}`}
           >
             <div
-              className={`assistant-bubble assistant-bubble-${entry.role === 'user' ? 'user' : 'ai'}`}
+              className={`assistant-bubble assistant-bubble-${entry.role === 'user' ? 'user' : 'ai'}${entry.streaming ? ' assistant-streaming' : ''}`}
             >
               {entry.content}
             </div>
@@ -238,7 +288,7 @@ export default function FormulaAssistant() {
           </div>
         ))}
 
-        {sending && (
+        {sending && phase !== 'writing' && (
           <div className="assistant-bubble assistant-bubble-ai assistant-typing" aria-label="L'assistant écrit">
             <span />
             <span />

@@ -1,12 +1,28 @@
 import { useFormula } from '../context/FormulaContext'
 import { computeFormulaShares } from '../data/formulaEngine'
 import { evaluateFormulaCompliance } from '../data/ifraCompliance'
+import { listCustomLimits, type CustomLimit } from '../data/regulationsApi'
+import { useEffect, useState } from 'react'
 import './ComplianceReport.css'
 
 export default function ComplianceReport() {
   const { favorites, facets, adjustments, catalog } = useFormula()
   const shares = computeFormulaShares(favorites, facets, adjustments, catalog)
   const compliance = evaluateFormulaCompliance(shares)
+  const [customLimits, setCustomLimits] = useState<CustomLimit[]>([])
+
+  useEffect(() => {
+    listCustomLimits()
+      .then(setCustomLimits)
+      .catch(() => setCustomLimits([]))
+  }, [])
+
+  // Materials of this formula above a limit set by a custom regulation.
+  const customViolations = customLimits.flatMap((limit) => {
+    const share = shares.find((s) => s.material.id === limit.materialId)
+    if (!share || share.percent <= limit.maxPercent + 1e-9) return []
+    return [{ ...limit, material: share.material.name, percent: share.percent }]
+  })
 
   if (shares.length === 0) {
     return (
@@ -54,6 +70,20 @@ export default function ComplianceReport() {
           ⚠ Cumul d'allergènes entre plusieurs matières de cette formule :{' '}
           {compliance.overlappingAllergens.join(', ')}.
         </p>
+      )}
+
+      {customViolations.length > 0 && (
+        <div className="compliance-custom">
+          <strong>Réglementations personnalisées non respectées :</strong>
+          <ul>
+            {customViolations.map((v) => (
+              <li key={`${v.regulationId}-${v.materialId}`}>
+                {v.material} : {v.percent.toFixed(2)} %{' '}
+                {v.maxPercent === 0 ? '(interdite)' : `(max ${v.maxPercent} %)`} — {v.regulation}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="compliance-table-wrapper">

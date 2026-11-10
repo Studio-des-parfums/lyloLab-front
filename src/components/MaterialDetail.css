@@ -181,12 +181,12 @@
   color: #8a8373;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 0.4rem 0;
+  padding: 0.4rem 1rem 0.4rem 0;
   border-bottom: 1px solid #ece4cf;
 }
 
 .detail-recipe-table td {
-  padding: 0.45rem 0;
+  padding: 0.45rem 1rem 0.45rem 0;
   border-bottom: 1px solid #f5f0e2;
   color: #2b2a28;
 }
@@ -498,4 +498,9 @@
   font-size: 0.82rem;
   color: #2b2a28;
   margin: 0 0 0.8rem;
+}
+
+.detail-recipe-table th:last-child,
+.detail-recipe-table td:last-child {
+  padding-right: 0;
 }

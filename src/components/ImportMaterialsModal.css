@@ -178,13 +178,13 @@
   font-size: 0.7rem;
   font-weight: 600;
   color: #8a8373;
-  padding: 0.35rem 0.5rem;
+  padding: 0.35rem 0.85rem;
   border-bottom: 1px solid #e3ddcd;
 }
 
 .import-fields td,
 .import-rows td {
-  padding: 0.4rem 0.5rem;
+  padding: 0.4rem 0.85rem;
   border-bottom: 1px solid #f1ece0;
   vertical-align: top;
   color: #2b2a28;

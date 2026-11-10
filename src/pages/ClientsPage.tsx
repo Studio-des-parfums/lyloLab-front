@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Beaker, Briefcase, Copy, Plus, User } from 'lucide-react'
+import { ArrowLeft, Beaker, Briefcase, Copy, Plus } from 'lucide-react'
 import {
   getClient,
   getClientDisplayName,
@@ -12,6 +12,7 @@ import {
 } from '../data/clientsApi'
 import { useFormula } from '../context/FormulaContext'
 import { formulaAuthor } from '../data/formulasApi'
+import './ProjectsPage.css'
 import './ClientsPage.css'
 
 interface ClientsPageProps {
@@ -212,29 +213,51 @@ function ClientsList({ onOpenClient }: { onOpenClient: (clientId: string) => voi
           {clients.length === 0 ? (
             <p className="clients-empty">Aucun client pour le moment.</p>
           ) : (
-            <div className="clients-grid">
-              {clients.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className="client-card"
-                  onClick={() => onOpenClient(c.id)}
-                >
-                  <div className="client-card-avatar">
-                    <User size={20} />
-                  </div>
-                  <span className="client-card-name">{getClientDisplayName(c)}</span>
-                  {c.company && (c.contactFirstName || c.contactLastName) && (
-                    <span className="client-card-company">
-                      {`${c.contactFirstName ?? ''} ${c.contactLastName ?? ''}`.trim()}
-                    </span>
-                  )}
-                  <span className="client-card-projects">
-                    {c.projects.length} projet{c.projects.length > 1 ? 's' : ''}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <table className="projects-table clients-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Contact</th>
+                  <th>Email</th>
+                  <th>Téléphone</th>
+                  <th>Projets</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((c) => {
+                  const contact = `${c.contactFirstName ?? ''} ${c.contactLastName ?? ''}`.trim()
+                  return (
+                    <tr
+                      key={c.id}
+                      tabIndex={0}
+                      onClick={() => onOpenClient(c.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') onOpenClient(c.id)
+                      }}
+                    >
+                      <td>
+                        <span className="projects-table-name">{getClientDisplayName(c)}</span>
+                      </td>
+                      <td>{c.company ? contact || '—' : '—'}</td>
+                      <td>
+                        {c.contactEmail ? (
+                          <a
+                            href={`mailto:${c.contactEmail}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {c.contactEmail}
+                          </a>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>{c.contactPhone || '—'}</td>
+                      <td className="clients-table-count">{c.projects.length}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           )}
         </>
       )}

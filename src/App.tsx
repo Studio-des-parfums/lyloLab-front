@@ -6,6 +6,7 @@ import MaterialsLibrary from './pages/MaterialsLibrary'
 import FormulaBuilder from './pages/FormulaBuilder'
 import ProjectsPage from './pages/ProjectsPage'
 import ClientsPage from './pages/ClientsPage'
+import RegulationsPage from './pages/RegulationsPage'
 import TeamPage from './pages/TeamPage'
 import AuthPage from './pages/AuthPage'
 import { FormulaProvider, useFormula } from './context/FormulaContext'
@@ -114,6 +115,8 @@ function AppContent() {
         return <MaterialsLibrary onGoToFormula={handleGoToFormula} />
       case 'team':
         return <TeamPage />
+      case 'regulation':
+        return <RegulationsPage />
       case 'formulation':
         switch (formulationView) {
           case 'builder':

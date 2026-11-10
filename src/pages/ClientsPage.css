@@ -204,3 +204,15 @@
 .client-detail-projects {
   margin-top: 1rem;
 }
+
+.clients-table a {
+  color: inherit;
+}
+
+.clients-table a:hover {
+  text-decoration: underline;
+}
+
+.clients-table-count {
+  font-variant-numeric: tabular-nums;
+}
