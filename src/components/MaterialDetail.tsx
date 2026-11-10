@@ -27,6 +27,7 @@ import {
 import { FACETS } from '../data/facetMapping'
 import { useFormula } from '../context/FormulaContext'
 import DescriptorRadar from './DescriptorRadar'
+import MaterialStabilitySection from './MaterialStabilitySection'
 import './MaterialDetail.css'
 
 interface MaterialDetailProps {
@@ -414,6 +415,7 @@ export default function MaterialDetail({
 
             <MaterialTechnicalSheetSection material={material} />
             <MaterialLabInfoSection material={material} />
+            <MaterialStabilitySection materialId={material.id} />
           </>
         )}
 

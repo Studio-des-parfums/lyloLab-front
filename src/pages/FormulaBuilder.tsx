@@ -8,6 +8,7 @@ import OlfactiveRendering from '../components/OlfactiveRendering'
 import OlfactivePyramid from '../components/OlfactivePyramid'
 import FormulaTable from '../components/FormulaTable'
 import ComplianceReport from '../components/ComplianceReport'
+import StabilityCard from '../components/StabilityCard'
 import QuickAdjustments from '../components/QuickAdjustments'
 import FavoriteMaterials from '../components/FavoriteMaterials'
 import FormulaAssistant from '../components/FormulaAssistant'
@@ -197,6 +198,10 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
 
         <section className="card card-wide">
           <ComplianceReport />
+        </section>
+
+        <section className="card card-wide">
+          <StabilityCard />
         </section>
       </div>
 

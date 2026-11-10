@@ -1,0 +1,177 @@
+.stability-risk-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stability-risk-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.stability-risk-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.stability-risk-chip {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: #f1eee7;
+  color: #5c574c;
+}
+
+.stability-risk-oxidation {
+  background: #fdf3e0;
+  color: #8a6416;
+}
+
+.stability-risk-light {
+  background: #fff6cc;
+  color: #7a6200;
+}
+
+.stability-risk-heat {
+  background: #fbe6e0;
+  color: #9a3d24;
+}
+
+.stability-risk-ph {
+  background: #e8eef9;
+  color: #34518a;
+}
+
+.stability-risk-hydrolysis {
+  background: #e3f2f4;
+  color: #26666f;
+}
+
+.stability-risk-discoloration {
+  background: #f1e8f6;
+  color: #6b3f85;
+}
+
+.stability-risk-title {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: #2b2a28;
+}
+
+.stability-recommended {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.stability-recommended li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.stability-recommended span {
+  color: #8a8373;
+}
+
+.stability-ok {
+  font-size: 0.85rem;
+  color: #2f6b3d;
+}
+
+.stability-muted {
+  font-size: 0.82rem;
+  color: #8a8373;
+}
+
+.stability-num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stability-spec {
+  display: block;
+  font-size: 0.72rem;
+  color: #9a3d24;
+  margin-top: 0.15rem;
+}
+
+.stability-table-wrapper {
+  overflow-x: auto;
+}
+
+.stability-row-static {
+  cursor: default;
+}
+
+.stability-source {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #a39c8c;
+}
+
+.stability-trigger-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.stability-trigger {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ece7dc;
+  background: #fff;
+  font-size: 0.74rem;
+  color: #5c574c;
+  white-space: nowrap;
+}
+
+.stability-trigger-oxygen {
+  border-color: #ecd7a8;
+  color: #8a6416;
+}
+
+.stability-trigger-light {
+  border-color: #e6d98a;
+  color: #7a6200;
+}
+
+.stability-trigger-heat {
+  border-color: #eec2b4;
+  color: #9a3d24;
+}
+
+.stability-trigger-cold {
+  border-color: #bcd0ee;
+  color: #34518a;
+}
+
+.stability-trigger-moisture {
+  border-color: #b7dbe0;
+  color: #26666f;
+}
+
+.stability-trigger-ph {
+  border-color: #c6d2ea;
+  color: #34518a;
+}
+
+.stability-trigger-solvent {
+  border-color: #d9c8e4;
+  color: #6b3f85;
+}
+
+.stability-trigger-duration {
+  border-style: dashed;
+  color: #8a8373;
+}

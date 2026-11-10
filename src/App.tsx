@@ -7,6 +7,7 @@ import FormulaBuilder from './pages/FormulaBuilder'
 import ProjectsPage from './pages/ProjectsPage'
 import ClientsPage from './pages/ClientsPage'
 import RegulationsPage from './pages/RegulationsPage'
+import StabilityPage from './pages/StabilityPage'
 import TeamPage from './pages/TeamPage'
 import AuthPage from './pages/AuthPage'
 import { FormulaProvider, useFormula } from './context/FormulaContext'
@@ -117,6 +118,8 @@ function AppContent() {
         return <TeamPage />
       case 'regulation':
         return <RegulationsPage />
+      case 'tests':
+        return <StabilityPage />
       case 'formulation':
         switch (formulationView) {
           case 'builder':
