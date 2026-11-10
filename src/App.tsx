@@ -8,6 +8,7 @@ import ProjectsPage from './pages/ProjectsPage'
 import ClientsPage from './pages/ClientsPage'
 import RegulationsPage from './pages/RegulationsPage'
 import StabilityPage from './pages/StabilityPage'
+import LibraryPage from './pages/LibraryPage'
 import TeamPage from './pages/TeamPage'
 import AuthPage from './pages/AuthPage'
 import { FormulaProvider, useFormula } from './context/FormulaContext'
@@ -120,6 +121,8 @@ function AppContent() {
         return <RegulationsPage />
       case 'tests':
         return <StabilityPage />
+      case 'library':
+        return <LibraryPage onGoToFormula={handleGoToFormula} />
       case 'formulation':
         switch (formulationView) {
           case 'builder':

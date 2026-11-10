@@ -24,18 +24,18 @@
 }
 
 .formula-table td {
-  padding: 0.4rem 1rem 0.4rem 0;
+  padding: 0.45rem 0.7rem;
   color: #2b2a28;
 }
 
 .formula-table th {
-  padding-right: 1rem;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
 }
 
 .formula-table th:last-child,
 .formula-table td:last-child {
   text-align: right;
-  padding-right: 0;
 }
 
 .formula-table tfoot td {

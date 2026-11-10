@@ -28,6 +28,7 @@ import { FACETS } from '../data/facetMapping'
 import { useFormula } from '../context/FormulaContext'
 import DescriptorRadar from './DescriptorRadar'
 import MaterialStabilitySection from './MaterialStabilitySection'
+import MaterialNotesSection from './MaterialNotesSection'
 import './MaterialDetail.css'
 
 interface MaterialDetailProps {
@@ -57,6 +58,7 @@ interface MaterialFormState {
   flashPoint: string
   physicochemicalState: string
   waterBase: '' | 'yes' | 'no'
+  originCountries: string
   descriptors: Record<string, string>
   regulatoryJson: string
 }
@@ -117,6 +119,7 @@ function formFromMaterial(material: Material): MaterialFormState {
     flashPoint: material.flashPoint ?? '',
     physicochemicalState: material.physicochemicalState ?? '',
     waterBase: material.waterBase === null ? '' : material.waterBase ? 'yes' : 'no',
+    originCountries: (material.originCountries ?? []).join(', '),
     descriptors: Object.fromEntries(
       descriptorKeys.map((key) => [
         key,
@@ -168,6 +171,10 @@ function buildMaterialPayload(form: MaterialFormState): UpdateMaterialPayload | 
     flashPoint: textOrNull(form.flashPoint),
     physicochemicalState: textOrNull(form.physicochemicalState),
     waterBase: form.waterBase === '' ? null : form.waterBase === 'yes',
+    originCountries: form.originCountries
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean),
     descriptors,
     regulatory,
   }
@@ -416,6 +423,7 @@ export default function MaterialDetail({
             <MaterialTechnicalSheetSection material={material} />
             <MaterialLabInfoSection material={material} />
             <MaterialStabilitySection materialId={material.id} />
+            <MaterialNotesSection materialId={material.id} />
           </>
         )}
 
@@ -734,6 +742,15 @@ function MaterialEditForm({
               <option value="no">Non</option>
             </select>
           </label>
+          <label className="detail-edit-field">
+            Origine (pays, séparés par des virgules)
+            <input
+              type="text"
+              placeholder="ex. France, Italie"
+              value={form.originCountries}
+              onChange={(e) => set('originCountries', e.target.value)}
+            />
+          </label>
         </div>
       </div>
 
@@ -998,6 +1015,7 @@ function MaterialTechnicalSheetSection({ material }: { material: Material }) {
     ['Flash point', material.flashPoint],
     ['État physicochimique', material.physicochemicalState],
     ['Water base', material.waterBase === null ? null : material.waterBase ? 'Oui' : 'Non'],
+    ['Origine', material.originCountries?.length ? material.originCountries.join(', ') : null],
   ]
 
   // Always shown, so missing information is visible and can be filled in via "Modifier".

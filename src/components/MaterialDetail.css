@@ -181,12 +181,12 @@
   color: #8a8373;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 0.4rem 1rem 0.4rem 0;
+  padding: 0.45rem 0.7rem;
   border-bottom: 1px solid #ece4cf;
 }
 
 .detail-recipe-table td {
-  padding: 0.45rem 1rem 0.45rem 0;
+  padding: 0.5rem 0.7rem;
   border-bottom: 1px solid #f5f0e2;
   color: #2b2a28;
 }
@@ -500,7 +500,74 @@
   margin: 0 0 0.8rem;
 }
 
-.detail-recipe-table th:last-child,
-.detail-recipe-table td:last-child {
-  padding-right: 0;
+.material-notes {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.material-notes li {
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  background: #faf8f4;
+}
+
+.material-notes p {
+  margin: 0 0 0.25rem;
+  font-size: 0.88rem;
+}
+
+.material-notes-stars {
+  color: #c79a2b;
+}
+
+.material-notes-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #a39c8c;
+}
+
+.material-notes-meta button {
+  border: none;
+  background: none;
+  color: #a39c8c;
+  cursor: pointer;
+  padding: 0;
+}
+
+.material-notes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.material-notes-form textarea {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ece7dc;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.material-notes-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.material-notes-rating button {
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  color: #d9d3c5;
+  cursor: pointer;
+  padding: 0 0.1rem;
+}
+
+.material-notes-rating button.active {
+  color: #c79a2b;
 }

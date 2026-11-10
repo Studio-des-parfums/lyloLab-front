@@ -80,13 +80,13 @@
   text-align: left;
   color: #8a8373;
   font-weight: 500;
-  padding: 0 1.1rem 0.5rem 0;
+  padding: 0.5rem 0.7rem;
   border-bottom: 1px solid #ece7dc;
   white-space: nowrap;
 }
 
 .compliance-table td {
-  padding: 0.45rem 1.1rem 0.45rem 0;
+  padding: 0.5rem 0.7rem;
   color: #2b2a28;
   vertical-align: top;
 }
@@ -115,9 +115,4 @@
 .compliance-custom ul {
   margin: 0.35rem 0 0;
   padding-left: 1.1rem;
-}
-
-.compliance-table th:last-child,
-.compliance-table td:last-child {
-  padding-right: 0;
 }

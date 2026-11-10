@@ -86,6 +86,8 @@ export interface Material {
   flashPoint: string | null
   physicochemicalState: string | null
   waterBase: boolean | null
+  /** Countries or regions the material comes from. */
+  originCountries: string[] | null
   stocks: MaterialStock[]
 }
 
@@ -164,6 +166,7 @@ export interface UpdateMaterialPayload {
   physicochemicalState?: string | null
   waterBase?: boolean | null
   regulatory?: MaterialRegulatory | null
+  originCountries?: string[] | null
 }
 
 export interface MaterialStockPayload {
