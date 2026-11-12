@@ -148,3 +148,13 @@ export function describeChange(change: FormulaChange): string {
       return `Volume total → ${change.ml} ml`
   }
 }
+
+/** Speech-to-text for the assistant's voice input. */
+export async function transcribeAudio(audio: Blob, signal?: AbortSignal): Promise<string> {
+  const form = new FormData()
+  form.append('audio', audio, 'voice')
+  const res = await apiFetch(`${API_URL}/api/ai/transcribe`, { method: 'POST', body: form, signal })
+  if (!res.ok) throw new Error(await readErrorMessage(res, 'La transcription a échoué'))
+  const body: { text: string } = await res.json()
+  return body.text
+}

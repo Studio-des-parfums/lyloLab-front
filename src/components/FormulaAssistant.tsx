@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
-import { Check, Minus, Send, Sparkles, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Check, Loader2, Mic, Minus, Send, Sparkles, Square, X } from 'lucide-react'
+import { useVoiceRecorder, voiceInputSupported } from '../hooks/useVoiceRecorder'
 import { useFormula } from '../context/FormulaContext'
 import { applyManualMl, computeFormulaShares } from '../data/formulaEngine'
 import { evaluateFormulaCompliance } from '../data/ifraCompliance'
 import {
   describeChange,
   streamChat,
+  transcribeAudio,
   type ChatMessagePayload,
   type ChatSource,
   type FormulaProposal,
@@ -87,6 +89,18 @@ export default function FormulaAssistant() {
   useEffect(() => {
     if (open) inputRef.current?.focus()
   }, [open])
+
+  // Voice input: the transcription lands in the draft, to review before sending.
+  const appendTranscript = useCallback((text: string) => {
+    setDraft((prev) => (prev.trim() ? `${prev.trimEnd()} ${text}` : text))
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }, [])
+  const voice = useVoiceRecorder(transcribeAudio, appendTranscript, setError)
+
+  const shutdownVoice = voice.shutdown
+  useEffect(() => {
+    if (!open) shutdownVoice()
+  }, [open, shutdownVoice])
 
   function snapshot(): FormulaSnapshot {
     const shares = applyManualMl(
@@ -306,27 +320,97 @@ export default function FormulaAssistant() {
           send()
         }}
       >
-        <textarea
-          ref={inputRef}
-          rows={1}
-          value={draft}
-          placeholder="Écrivez un message…"
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              send()
-            }
-          }}
-        />
-        <button
-          type="submit"
-          className="assistant-send"
-          disabled={!draft.trim() || sending}
-          aria-label="Envoyer"
-        >
-          <Send size={16} />
-        </button>
+        {voice.state === 'starting' ? (
+          <div className="assistant-recording">
+            <button
+              type="button"
+              className="assistant-icon-btn"
+              onClick={voice.cancel}
+              aria-label="Annuler"
+            >
+              <X size={16} />
+            </button>
+            <Loader2 size={14} className="assistant-spin" />
+            <span className="assistant-recording-hint">Activation du micro…</span>
+          </div>
+        ) : voice.state === 'recording' ? (
+          <div
+            className="assistant-recording"
+            onKeyDown={(e) => e.key === 'Escape' && voice.cancel()}
+          >
+            <button
+              type="button"
+              className="assistant-icon-btn"
+              onClick={voice.cancel}
+              aria-label="Annuler l'enregistrement"
+              title="Annuler (Échap)"
+            >
+              <X size={16} />
+            </button>
+            <span className="assistant-recording-dot" />
+            <div className="assistant-recording-wave" aria-hidden>
+              {[0.5, 0.8, 1, 0.7, 0.9, 0.6, 1, 0.75, 0.55].map((k, i) => (
+                <span key={i} style={{ transform: `scaleY(${0.15 + voice.level * k * 0.85})` }} />
+              ))}
+            </div>
+            <span className="assistant-recording-time">
+              {Math.floor(voice.seconds / 60)}:{String(voice.seconds % 60).padStart(2, '0')}
+            </span>
+            <button
+              type="button"
+              className="assistant-send assistant-mic-stop"
+              onClick={voice.stop}
+              aria-label="Terminer et transcrire"
+              title="Terminer et transcrire"
+              autoFocus
+            >
+              <Square size={13} fill="currentColor" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={draft}
+              disabled={voice.state === 'transcribing'}
+              placeholder={voice.state === 'transcribing' ? 'Transcription…' : 'Écrivez ou dictez un message…'}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  send()
+                }
+              }}
+            />
+            {voiceInputSupported && (
+              <button
+                type="button"
+                className="assistant-mic"
+                onClick={voice.start}
+                onPointerEnter={voice.warm}
+                onFocus={voice.warm}
+                disabled={voice.state === 'transcribing'}
+                aria-label="Dicter un message"
+                title="Dicter un message"
+              >
+                {voice.state === 'transcribing' ? (
+                  <Loader2 size={16} className="assistant-spin" />
+                ) : (
+                  <Mic size={16} />
+                )}
+              </button>
+            )}
+            <button
+              type="submit"
+              className="assistant-send"
+              disabled={!draft.trim() || sending || voice.state === 'transcribing'}
+              aria-label="Envoyer"
+            >
+              <Send size={16} />
+            </button>
+          </>
+        )}
       </form>
     </div>
   )

@@ -360,3 +360,95 @@
     opacity: 0;
   }
 }
+
+/* Voice input */
+.assistant-mic {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #f5f2ea;
+  color: #6b6458;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.assistant-mic:hover:not(:disabled) {
+  background: #ece5d3;
+  color: #2b2a28;
+}
+
+.assistant-mic:disabled {
+  cursor: wait;
+}
+
+.assistant-recording {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 36px;
+}
+
+.assistant-recording-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d0453a;
+  animation: assistant-pulse 1.2s ease-in-out infinite;
+}
+
+.assistant-recording-wave {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 24px;
+}
+
+.assistant-recording-wave span {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: #c9a24a;
+  transition: transform 80ms linear;
+}
+
+.assistant-recording-time {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: #6b6458;
+}
+
+.assistant-spin {
+  animation: assistant-rotate 0.9s linear infinite;
+}
+
+@keyframes assistant-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes assistant-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-recording-dot,
+  .assistant-spin {
+    animation: none;
+  }
+}
+
+.assistant-recording-hint {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #6b6458;
+}
