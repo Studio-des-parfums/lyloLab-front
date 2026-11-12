@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Camera, Check, FlaskConical, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { ArrowLeft, Bell, CalendarDays, Camera, Check, FlaskConical, Package, Pencil, Plus, RotateCcw, Search, Timer, Trash2, X } from 'lucide-react'
 import { listFormulas, type FormulaSummary } from '../data/formulasApi'
+import { fetchTeam, type TeamMember } from '../data/authApi'
+import { useAuth } from '../context/AuthContext'
 import {
   APPEARANCE_LABEL,
   CONCLUSION_LABEL,
@@ -8,6 +10,7 @@ import {
   STATUS_LABEL,
   addObservation,
   createStabilityCampaign,
+  deleteDailyNote,
   deleteObservation,
   deletePhoto,
   deleteStabilityTest,
@@ -19,6 +22,9 @@ import {
   getStabilityOverview,
   getStabilityTest,
   listStabilityTests,
+  saveDailyNote,
+  sendReminderPreview,
+  setWatchers,
   updateStabilityTest,
   uploadPhoto,
   type Appearance,
@@ -44,7 +50,22 @@ import './RegulationsPage.css'
 import './StabilityPage.css'
 
 const errorText = (err: unknown) => (err instanceof Error ? err.message : 'Erreur inconnue')
-const todayIso = () => new Date().toISOString().slice(0, 10)
+const toIsoDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const todayIso = () => toIsoDate(new Date())
+const DAY_MS = 24 * 60 * 60 * 1000
+/** Local midnight of a YYYY-MM-DD (or ISO) date. */
+const localDay = (iso: string) => {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+const addDays = (iso: string, days: number) => {
+  const d = localDay(iso)
+  d.setDate(d.getDate() + days)
+  return toIsoDate(d)
+}
+const daysBetween = (fromIso: string, toIso: string) =>
+  Math.round((localDay(toIso).getTime() - localDay(fromIso).getTime()) / DAY_MS)
 
 type Tab = 'due' | 'tests' | 'materials'
 type View = { name: 'home'; tab: Tab } | { name: 'test'; id: string } | { name: 'new'; formulaId?: string }
@@ -262,6 +283,44 @@ function DueTab({
   )
 }
 
+const GRADE_RANK: Record<Grade, number> = { conform: 0, slight: 1, altered: 2 }
+const CONCLUSION_RANK: Record<Conclusion, number> = { conform: 0, minor: 1, non_conform: 2 }
+
+/** Aggregates the tests of a campaign for one table row (worst result wins). */
+function campaignSummary(tests: StabilityTest[]) {
+  const first = tests[0]
+  const all = tests.flatMap((t) => t.checkpointList)
+  const done = all.filter((c) => c.done).length
+  const next =
+    tests
+      .map((t) => t.nextCheckpoint)
+      .filter((c): c is NonNullable<typeof c> => !!c)
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0] ?? null
+  const grades = tests.map((t) => t.worstGrade).filter((g): g is Grade => !!g)
+  const conclusions = tests.map((t) => t.conclusion).filter((c): c is Conclusion => !!c)
+  const status: TestStatus = tests.some((t) => t.status === 'in_progress')
+    ? 'in_progress'
+    : tests.some((t) => t.status === 'completed')
+      ? 'completed'
+      : 'cancelled'
+  return {
+    first,
+    tests,
+    done,
+    total: all.length,
+    progress: all.length ? done / all.length : 0,
+    next,
+    overdue: tests.reduce((n, t) => n + t.overdueCount, 0),
+    worstGrade: grades.length ? grades.reduce((a, b) => (GRADE_RANK[b] > GRADE_RANK[a] ? b : a)) : null,
+    // Only shown once every test of the campaign is concluded.
+    conclusion:
+      status !== 'in_progress' && conclusions.length
+        ? conclusions.reduce((a, b) => (CONCLUSION_RANK[b] > CONCLUSION_RANK[a] ? b : a))
+        : null,
+    status,
+  }
+}
+
 function TestsTab({
   catalog,
   onOpenTest,
@@ -281,11 +340,24 @@ function TestsTab({
       .catch((err) => setError(errorText(err)))
   }, [status])
 
+  // One row per campaign (a formula launched under several conditions).
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return (tests ?? []).filter(
-      (t) => !q || `${t.formula.name} ${conditionName(catalog, t)}`.toLowerCase().includes(q),
-    )
+    const groups = new Map<string, StabilityTest[]>()
+    for (const t of tests ?? []) {
+      const list = groups.get(t.campaignId)
+      if (list) list.push(t)
+      else groups.set(t.campaignId, [t])
+    }
+    return [...groups.values()]
+      .map((list) => campaignSummary(list))
+      .filter(
+        (c) =>
+          !q ||
+          `${c.first.formula.name} ${c.tests.map((t) => conditionName(catalog, t)).join(' ')}`
+            .toLowerCase()
+            .includes(q),
+      )
   }, [tests, query, catalog])
 
   return (
@@ -322,7 +394,7 @@ function TestsTab({
           <thead>
             <tr>
               <th>Formule</th>
-              <th>Condition</th>
+              <th>Conditions</th>
               <th>Base</th>
               <th>Début</th>
               <th>Avancement</th>
@@ -332,51 +404,57 @@ function TestsTab({
             </tr>
           </thead>
           <tbody>
-            {visible.map((t) => (
+            {visible.map((c) => (
               <tr
-                key={t.id}
+                key={c.first.campaignId}
                 tabIndex={0}
-                onClick={() => onOpenTest(t.id)}
+                onClick={() => onOpenTest(c.first.id)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') onOpenTest(t.id)
+                  if (e.key === 'Enter') onOpenTest(c.first.id)
                 }}
               >
                 <td>
-                  <span className="projects-table-name">{t.formula.name}</span>
+                  <span className="projects-table-name">{c.first.formula.name}</span>
                 </td>
-                <td>{conditionName(catalog, t)}</td>
-                <td className="stability-muted">{baseName(catalog, t.base)}</td>
-                <td className="stability-num">{formatDate(t.startDate)}</td>
+                <td>
+                  <span className="stability-condition-chips">
+                    {c.tests.map((t) => (
+                      <span key={t.id} className={`stability-condition-chip stability-condition-chip-${t.status}`}>
+                        {conditionName(catalog, t)}
+                      </span>
+                    ))}
+                  </span>
+                </td>
+                <td className="stability-muted">{baseName(catalog, c.first.base)}</td>
+                <td className="stability-num">{formatDate(c.first.startDate)}</td>
                 <td className="stability-num">
                   <span className="stability-progress">
-                    <span style={{ width: `${Math.round(t.progress * 100)}%` }} />
+                    <span style={{ width: `${Math.round(c.progress * 100)}%` }} />
                   </span>
-                  {t.checkpointList.filter((c) => c.done).length}/{t.checkpointList.length}
+                  {c.done}/{c.total}
                 </td>
                 <td className="stability-num">
-                  {t.nextCheckpoint ? (
+                  {c.next ? (
                     <>
-                      {formatDate(t.nextCheckpoint.dueDate)}
-                      {t.overdueCount > 0 && (
-                        <span className="stability-due stability-due-overdue">En retard</span>
-                      )}
+                      {formatDate(c.next.dueDate)}
+                      {c.overdue > 0 && <span className="stability-due stability-due-overdue">En retard</span>}
                     </>
                   ) : (
                     '—'
                   )}
                 </td>
                 <td>
-                  {t.conclusion ? (
-                    <span className={`stability-conclusion stability-conclusion-${t.conclusion}`}>
-                      {CONCLUSION_LABEL[t.conclusion]}
+                  {c.conclusion ? (
+                    <span className={`stability-conclusion stability-conclusion-${c.conclusion}`}>
+                      {CONCLUSION_LABEL[c.conclusion]}
                     </span>
                   ) : (
-                    <GradeBadge grade={t.worstGrade} />
+                    <GradeBadge grade={c.worstGrade} />
                   )}
                 </td>
                 <td>
-                  <span className={`stability-status stability-status-${t.status}`}>
-                    {STATUS_LABEL[t.status]}
+                  <span className={`stability-status stability-status-${c.status}`}>
+                    {STATUS_LABEL[c.status]}
                   </span>
                 </td>
               </tr>
@@ -490,9 +568,222 @@ function MaterialsTab() {
 // ── New campaign ────────────────────────────────────────────────────────
 
 const parseDays = (text: string) =>
-  [...new Set(text.split(/[\s,;]+/).map(Number).filter((n) => Number.isInteger(n) && n >= 0))].sort(
+  [...new Set(text.split(/[\s,;]+/).filter(Boolean).map(Number).filter((n) => Number.isInteger(n) && n >= 0))].sort(
     (a, b) => a - b,
   )
+
+// ── Email reminders ─────────────────────────────────────────────────────
+
+function useTeamMembers() {
+  const [members, setMembers] = useState<TeamMember[]>([])
+  useEffect(() => {
+    fetchTeam()
+      .then((t) => setMembers(t.members))
+      .catch(() => setMembers([]))
+  }, [])
+  return members
+}
+
+/** Toggle chips of team members; `fixed` is always on (the creator). */
+function MemberPicker({
+  members,
+  fixed,
+  value,
+  onChange,
+}: {
+  members: TeamMember[]
+  fixed: { id: string; name: string } | null
+  value: string[]
+  onChange: (ids: string[]) => void
+}) {
+  const others = members.filter((m) => m.id !== fixed?.id)
+  return (
+    <div className="stability-members">
+      {fixed && (
+        <span className="stability-member fixed" title="Le créateur du test reçoit toujours les alertes">
+          <Check size={13} /> {fixed.name} <em>créateur</em>
+        </span>
+      )}
+      {others.map((m) => {
+        const on = value.includes(m.id)
+        return (
+          <button
+            key={m.id}
+            type="button"
+            aria-pressed={on}
+            className={`stability-member${on ? ' on' : ''}`}
+            title={m.email}
+            onClick={() => onChange(on ? value.filter((id) => id !== m.id) : [...value, m.id])}
+          >
+            {on ? <Check size={13} /> : <Plus size={13} />} {m.name}
+          </button>
+        )
+      })}
+      {others.length === 0 && <span className="stability-muted">Personne d'autre dans l'équipe.</span>}
+    </div>
+  )
+}
+
+function RemindersCard({
+  test,
+  busy,
+  onSave,
+}: {
+  test: StabilityTest
+  busy: boolean
+  onSave: (userIds: string[]) => void
+}) {
+  const members = useTeamMembers()
+  const saved = test.watchers.map((w) => w.user.id)
+  const [value, setValue] = useState(saved)
+  const [preview, setPreview] = useState<string | null>(null)
+  const savedKey = [...saved].sort().join()
+  useEffect(() => setValue(savedKey ? savedKey.split(',') : []), [savedKey])
+  const dirty = [...value].sort().join() !== savedKey
+
+  return (
+    <section className="stability-card">
+      <h2>
+        <Bell size={16} /> Alertes email
+      </h2>
+      <p className="stability-muted">
+        Chaque matin à 8 h, un seul mail par personne récapitule les contrôles du jour et en retard.
+        Les destinataires sont communs à toutes les conditions du lancement.
+      </p>
+      <MemberPicker members={members} fixed={test.createdBy} value={value} onChange={setValue} />
+      <div className="client-detail-form-actions">
+        {dirty && (
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => onSave(value)}>
+            Enregistrer les destinataires
+          </button>
+        )}
+        <button
+          type="button"
+          className="btn btn-outline"
+          disabled={busy}
+          onClick={async () => {
+            setPreview('Envoi…')
+            try {
+              const r = await sendReminderPreview()
+              setPreview(`Aperçu envoyé à ${r.email} (${r.items} contrôle${r.items > 1 ? 's' : ''}).`)
+            } catch (err) {
+              setPreview(errorText(err))
+            }
+          }}
+        >
+          M'envoyer mon récapitulatif maintenant
+        </button>
+      </div>
+      {preview && <p className="stability-muted">{preview}</p>}
+    </section>
+  )
+}
+
+function FormulaPicker({
+  formulas,
+  value,
+  onChange,
+}: {
+  formulas: FormulaSummary[]
+  value: string
+  onChange: (id: string) => void
+}) {
+  const selected = formulas.find((f) => f.id === value)
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
+
+  const normalize = (t: string) =>
+    t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const results = useMemo(() => {
+    const q = normalize(query.trim())
+    return q ? formulas.filter((f) => normalize(f.name).includes(q)) : formulas
+  }, [formulas, query])
+
+  function pick(f: FormulaSummary) {
+    onChange(f.id)
+    setQuery('')
+    setOpen(false)
+  }
+
+  return (
+    <div className="stability-field stability-combobox">
+      <div className="stability-combobox-input">
+        <Search size={16} />
+        <input
+          type="text"
+          role="combobox"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          placeholder={selected ? selected.name : 'Rechercher une formule…'}
+          className={selected && !query ? 'has-value' : ''}
+          value={query}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 120)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setActive(0)
+            setOpen(true)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setOpen(true)
+              setActive((i) => Math.min(i + 1, results.length - 1))
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              setActive((i) => Math.max(i - 1, 0))
+            } else if (e.key === 'Enter' && open && results[active]) {
+              e.preventDefault()
+              pick(results[active])
+            } else if (e.key === 'Escape') {
+              setOpen(false)
+            }
+          }}
+        />
+        {selected && (
+          <button
+            type="button"
+            className="stability-combobox-clear"
+            aria-label="Retirer la formule"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              onChange('')
+              setQuery('')
+            }}
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+      {open && (
+        <ul className="stability-combobox-list" role="listbox">
+          {results.length === 0 ? (
+            <li className="stability-combobox-empty">Aucune formule ne correspond.</li>
+          ) : (
+            results.map((f, i) => (
+              <li
+                key={f.id}
+                role="option"
+                aria-selected={f.id === value}
+                className={`${i === active ? 'active' : ''}${f.id === value ? ' selected' : ''}`}
+                onMouseEnter={() => setActive(i)}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  pick(f)
+                }}
+              >
+                <span>{f.name}</span>
+                {f.status === 'completed' && <em>Finalisée</em>}
+                {f.id === value && <Check size={14} />}
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  )
+}
 
 function NewCampaign({
   catalog,
@@ -509,9 +800,13 @@ function NewCampaign({
   const [formulaId, setFormulaId] = useState(initialFormulaId ?? '')
   const [report, setReport] = useState<FormulaRiskReport | null>(null)
   const [selected, setSelected] = useState<Record<string, { days: string; label: string }>>({})
-  const [base, setBase] = useState('alcohol')
+  const [base, setBase] = useState('')
   const [container, setContainer] = useState('')
-  const [startDate, setStartDate] = useState(todayIso())
+  const [startDate, setStartDate] = useState('')
+  const [durationDays, setDurationDays] = useState('')
+  const [watcherIds, setWatcherIds] = useState<string[]>([])
+  const members = useTeamMembers()
+  const { user } = useAuth()
   const [notes, setNotes] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -531,10 +826,7 @@ function NewCampaign({
         setReport(r)
         setSelected(
           Object.fromEntries(
-            r.recommended.map((rec) => {
-              const info = catalog.conditions.find((c) => c.code === rec.condition)
-              return [rec.condition, { days: (info?.checkpoints ?? []).join(', '), label: '' }]
-            }),
+            r.recommended.map((rec) => [rec.condition, { days: '', label: '' }]),
           ),
         )
       })
@@ -542,24 +834,30 @@ function NewCampaign({
   }, [formulaId, catalog])
 
   function toggle(code: string, checked: boolean) {
-    const info = catalog?.conditions.find((c) => c.code === code)
     setSelected((prev) => {
       const next = { ...prev }
-      if (checked) next[code] = { days: (info?.checkpoints ?? []).join(', '), label: '' }
+      if (checked) next[code] = { days: '', label: '' }
       else delete next[code]
       return next
     })
   }
 
+  // Empty fields fall back to the value shown as placeholder.
+  const defaultDays = (code: string) => catalog?.conditions.find((c) => c.code === code)?.checkpoints ?? []
   const conditions = Object.entries(selected).map(([condition, v]) => ({
     condition,
     conditionLabel: v.label.trim() || undefined,
-    checkpoints: parseDays(v.days),
+    checkpoints: v.days.trim() ? parseDays(v.days) : defaultDays(condition),
   }))
+  const effectiveStart = startDate || todayIso()
+  const duration = durationDays.trim() ? Number(durationDays) : null
+  const durationValid = duration === null || (Number.isInteger(duration) && duration > 0)
+  const deadline = duration && durationValid ? addDays(effectiveStart, duration) : null
   const valid =
     !!formulaId &&
     conditions.length > 0 &&
     conditions.every((c) => c.checkpoints.length > 0) &&
+    durationValid &&
     (!selected.other || !!selected.other.label.trim())
 
   async function submit() {
@@ -569,9 +867,11 @@ function NewCampaign({
     try {
       await createStabilityCampaign({
         formulaId,
-        base,
+        base: base || undefined,
         container: container.trim() || undefined,
-        startDate,
+        startDate: effectiveStart,
+        deadline: deadline ?? undefined,
+        watcherIds: watcherIds.length ? watcherIds : undefined,
         notes: notes.trim() || undefined,
         conditions,
       })
@@ -596,45 +896,115 @@ function NewCampaign({
         </div>
       </div>
 
-      <div className="client-detail-form">
-        <label>
-          Formule
-          <select value={formulaId} onChange={(e) => setFormulaId(e.target.value)}>
-            <option value="">Choisir une formule…</option>
-            {formulas.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-                {f.status === 'completed' ? ' (finalisée)' : ''}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="client-detail-form-row">
-          <label>
-            Base testée
-            <select value={base} onChange={(e) => setBase(e.target.value)}>
-              {catalog?.bases.map((b) => (
-                <option key={b.code} value={b.code}>
-                  {b.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Date de début
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          </label>
+      <section className="stability-card stability-setup">
+        <div className="stability-setup-group stability-setup-formula">
+          <div className="stability-setup-title">
+            <FlaskConical size={16} />
+            <div>
+              <h2>Formule</h2>
+              <p className="stability-muted">La formule à tester. Ses risques connus s'affichent dessous.</p>
+            </div>
+          </div>
+          <FormulaPicker formulas={formulas} value={formulaId} onChange={setFormulaId} />
         </div>
-        <label>
-          Contenant
-          <input
-            type="text"
-            placeholder="ex: flacon verre transparent 30 ml, pompe"
-            value={container}
-            onChange={(e) => setContainer(e.target.value)}
+
+        <div className="stability-setup-columns">
+          <div className="stability-setup-group">
+            <div className="stability-setup-title">
+              <Package size={16} />
+              <div>
+                <h2>Échantillon</h2>
+                <p className="stability-muted">Base et conditionnement du produit testé.</p>
+              </div>
+            </div>
+            <label className="stability-field">
+              <span>Base testée</span>
+              <select value={base} onChange={(e) => setBase(e.target.value)}>
+                <option value="">Alcool (par défaut)</option>
+                {catalog?.bases.map((b) => (
+                  <option key={b.code} value={b.code}>
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="stability-field">
+              <span>Contenant</span>
+              <input
+                type="text"
+                placeholder="ex : flacon verre transparent 30 ml, pompe"
+                value={container}
+                onChange={(e) => setContainer(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="stability-setup-group">
+            <div className="stability-setup-title">
+              <CalendarDays size={16} />
+              <div>
+                <h2>Calendrier</h2>
+                <p className="stability-muted">Démarrage et échéance optionnelle.</p>
+              </div>
+            </div>
+            <div className="stability-field-row">
+              <label className="stability-field">
+                <span>Date de début</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  title="Vide = aujourd'hui"
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <small>{startDate ? '' : "Vide = aujourd'hui"}</small>
+              </label>
+              <label className="stability-field">
+                <span>
+                  Durée <em>optionnel</em>
+                </span>
+                <div className="stability-suffix-input">
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    placeholder="ex : 7"
+                    value={durationDays}
+                    onChange={(e) => setDurationDays(e.target.value)}
+                  />
+                  <span>jours</span>
+                </div>
+                {!durationValid && <small className="clients-status-error">Nombre entier &gt; 0</small>}
+              </label>
+            </div>
+            {deadline && (
+              <div className="stability-deadline-chip">
+                <Timer size={14} /> Fin prévue le <strong>{formatDate(deadline)}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="stability-card stability-setup">
+        <div className="stability-setup-group">
+          <div className="stability-setup-title">
+            <Bell size={16} />
+            <div>
+              <h2>Alertes email</h2>
+              <p className="stability-muted">
+                Un mail récapitulatif chaque matin quand des contrôles sont à faire. Vous le recevez
+                automatiquement ; ajoutez d'autres membres de l'équipe si besoin.
+              </p>
+            </div>
+          </div>
+          <MemberPicker
+            members={members}
+            fixed={user ? { id: user.id, name: user.name } : null}
+            value={watcherIds}
+            onChange={setWatcherIds}
           />
-        </label>
-      </div>
+        </div>
+      </section>
 
       {formulaId && !report && <p className="clients-status">Analyse de la formule…</p>}
       {report && (
@@ -648,8 +1018,8 @@ function NewCampaign({
         <section className="stability-card">
           <h2>Conditions de test</h2>
           <p className="stability-muted">
-            Les tests conseillés sont pré-cochés. Les jours de contrôle sont modifiables (ex : 7, 14,
-            28, 56, 84).
+            Les tests conseillés sont pré-cochés. Laissez les jours de contrôle vides pour utiliser
+            ceux proposés en exemple.
           </p>
           <div className="stability-conditions">
             {catalog.conditions.map((c) => {
@@ -683,6 +1053,7 @@ function NewCampaign({
                         type="text"
                         className="stability-input"
                         aria-label={`Jours de contrôle — ${c.label}`}
+                        placeholder={`Jours de contrôle, ex : ${c.checkpoints.join(', ')}`}
                         value={value.days}
                         onChange={(e) =>
                           setSelected((p) => ({ ...p, [c.code]: { ...value, days: e.target.value } }))
@@ -700,7 +1071,12 @@ function NewCampaign({
       <div className="client-detail-form">
         <label>
           Notes
-          <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <textarea
+            rows={2}
+            placeholder="ex : lot pilote, macération 48 h avant mise en test"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
         </label>
         {error && <p className="clients-status clients-status-error">{error}</p>}
         <div className="client-detail-form-actions">
@@ -738,6 +1114,7 @@ const numberOrNull = (v: string) => {
 
 function PhotoThumb({ id, onDelete }: { id: string; onDelete?: () => void }) {
   const [url, setUrl] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
   useEffect(() => {
     let objectUrl: string | null = null
     fetchPhotoUrl(id)
@@ -747,11 +1124,11 @@ function PhotoThumb({ id, onDelete }: { id: string; onDelete?: () => void }) {
       })
       .catch(() => setUrl(null))
     return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
+      if (objectUrl?.startsWith('blob:')) URL.revokeObjectURL(objectUrl)
     }
   }, [id])
   return (
-    <span className="stability-photo">
+    <span className={`stability-photo${confirming ? ' confirming' : ''}`}>
       {url ? (
         <a href={url} target="_blank" rel="noreferrer">
           <img src={url} alt="Photo de l'échantillon" />
@@ -759,12 +1136,267 @@ function PhotoThumb({ id, onDelete }: { id: string; onDelete?: () => void }) {
       ) : (
         <span className="stability-photo-placeholder" />
       )}
-      {onDelete && (
-        <button type="button" onClick={onDelete} aria-label="Supprimer la photo" title="Supprimer">
+      {onDelete && !confirming && (
+        <button
+          type="button"
+          className="stability-photo-remove"
+          onClick={() => setConfirming(true)}
+          aria-label="Supprimer la photo"
+          title="Supprimer"
+        >
           <X size={12} />
         </button>
       )}
+      {onDelete && confirming && (
+        <span className="stability-photo-confirm" role="group" aria-label="Supprimer la photo ?">
+          <span>Supprimer ?</span>
+          <span className="stability-photo-confirm-actions">
+            <button
+              type="button"
+              className="yes"
+              autoFocus
+              aria-label="Confirmer la suppression"
+              title="Confirmer"
+              onClick={() => {
+                setConfirming(false)
+                onDelete()
+              }}
+            >
+              <Check size={12} />
+            </button>
+            <button
+              type="button"
+              aria-label="Annuler"
+              title="Annuler"
+              onClick={() => setConfirming(false)}
+              onKeyDown={(e) => e.key === 'Escape' && setConfirming(false)}
+            >
+              <X size={12} />
+            </button>
+          </span>
+        </span>
+      )}
     </span>
+  )
+}
+
+// ── Deadline countdown & daily notes ───────────────────────────────────
+
+function useNow(intervalMs: number) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), intervalMs)
+    return () => clearInterval(t)
+  }, [intervalMs])
+  return now
+}
+
+/** "J-3", "Jour J", "J+2" relative to the deadline, or "J+n" from the start. */
+function dayLabel(test: StabilityTest, dateIso: string) {
+  if (test.deadline) {
+    const n = daysBetween(dateIso, test.deadline)
+    return n > 0 ? `J-${n}` : n === 0 ? 'Jour J' : `J+${-n} (après échéance)`
+  }
+  return `J+${daysBetween(test.startDate, dateIso)}`
+}
+
+function Countdown({ test }: { test: StabilityTest }) {
+  const now = useNow(1000)
+  if (!test.deadline) return null
+  const end = localDay(test.deadline).getTime()
+  const start = localDay(test.startDate).getTime()
+  const left = end - now
+  const total = Math.max(end - start, 1)
+  const ratio = Math.min(Math.max((now - start) / total, 0), 1)
+  const abs = Math.abs(left)
+  const d = Math.floor(abs / DAY_MS)
+  const h = Math.floor((abs % DAY_MS) / 3_600_000)
+  const m = Math.floor((abs % 3_600_000) / 60_000)
+  const sec = Math.floor((abs % 60_000) / 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const running = test.status === 'in_progress'
+  return (
+    <div className={`stability-countdown${left < 0 && running ? ' overdue' : ''}`}>
+      <div className="stability-countdown-time">
+        {running ? (
+          <>
+            <strong>
+              {d}j {pad(h)}h {pad(m)}min {pad(sec)}s
+            </strong>
+            <span>{left >= 0 ? 'restants' : 'de dépassement'}</span>
+          </>
+        ) : (
+          <strong>Chrono arrêté ({STATUS_LABEL[test.status].toLowerCase()})</strong>
+        )}
+      </div>
+      <div className="stability-countdown-bar">
+        <div style={{ width: `${ratio * 100}%` }} />
+      </div>
+      <div className="stability-countdown-dates stability-muted">
+        <span>Début {formatDate(test.startDate)}</span>
+        <span>Fin {formatDate(test.deadline)}</span>
+      </div>
+    </div>
+  )
+}
+
+function DeadlineCard({
+  test,
+  busy,
+  onSave,
+}: {
+  test: StabilityTest
+  busy: boolean
+  onSave: (deadline: string | null) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState('')
+  return (
+    <section className="stability-card">
+      <h2>
+        <Timer size={16} /> Échéance
+      </h2>
+      {test.deadline ? (
+        <Countdown test={test} />
+      ) : (
+        !editing && <p className="stability-muted">Pas de deadline pour ce test.</p>
+      )}
+      {editing ? (
+        <div className="client-detail-form-actions">
+          <input
+            type="date"
+            className="stability-input"
+            min={test.startDate.slice(0, 10)}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy || !value}
+            onClick={() => {
+              onSave(value)
+              setEditing(false)
+            }}
+          >
+            Enregistrer
+          </button>
+          <button type="button" className="btn btn-outline" onClick={() => setEditing(false)}>
+            Annuler
+          </button>
+        </div>
+      ) : (
+        <div className="client-detail-form-actions">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => {
+              setValue(test.deadline?.slice(0, 10) ?? '')
+              setEditing(true)
+            }}
+          >
+            <Pencil size={14} /> {test.deadline ? 'Modifier' : 'Ajouter une deadline'}
+          </button>
+          {test.deadline && (
+            <button type="button" className="btn btn-outline" disabled={busy} onClick={() => onSave(null)}>
+              Retirer
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function DailyNotesCard({
+  test,
+  busy,
+  onSave,
+  onDelete,
+}: {
+  test: StabilityTest
+  busy: boolean
+  onSave: (date: string, content: string) => Promise<boolean>
+  onDelete: (id: string) => void
+}) {
+  const [date, setDate] = useState(todayIso())
+  const [content, setContent] = useState('')
+  const existing = test.dailyNotes.find((n) => n.date.slice(0, 10) === date)
+
+  return (
+    <section className="stability-card">
+      <h2>Suivi quotidien ({test.dailyNotes.length})</h2>
+      <div className="client-detail-form stability-daily-form">
+        <div className="client-detail-form-row">
+          <label>
+            Jour
+            <input
+              type="date"
+              min={test.startDate.slice(0, 10)}
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value)
+                setContent('')
+              }}
+            />
+            {date && <span className="stability-muted">{dayLabel(test, date)}</span>}
+          </label>
+        </div>
+        <label>
+          Note du jour
+          <textarea
+            rows={2}
+            placeholder={existing ? existing.content : 'ex : RAS, légère opalescence, odeur stable…'}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+          />
+          {existing && (
+            <span className="stability-muted">Une note existe déjà ce jour-là : elle sera remplacée.</span>
+          )}
+        </label>
+        <div className="client-detail-form-actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy || !date || !content.trim()}
+            onClick={async () => {
+              if (await onSave(date, content.trim())) setContent('')
+            }}
+          >
+            Enregistrer la note
+          </button>
+        </div>
+      </div>
+
+      {test.dailyNotes.length === 0 ? (
+        <p className="clients-empty">Aucune note quotidienne.</p>
+      ) : (
+        <ul className="stability-daily-list">
+          {test.dailyNotes.map((n) => (
+            <li key={n.id}>
+              <div className="stability-daily-head">
+                <strong>{dayLabel(test, n.date)}</strong>
+                <span className="stability-muted">
+                  {formatDate(n.date.slice(0, 10))}
+                  {n.authorName ? ` · ${n.authorName}` : ''}
+                </span>
+                <button
+                  type="button"
+                  className="project-card-delete"
+                  disabled={busy}
+                  aria-label="Supprimer la note"
+                  title="Supprimer"
+                  onClick={() => onDelete(n.id)}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              <p>{n.content}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 
@@ -982,15 +1614,56 @@ function TestView({
       )}
 
       {test.campaign.length > 0 && (
-        <div className="stability-campaign">
-          <span className="stability-muted">Même campagne :</span>
-          {test.campaign.map((t) => (
-            <button key={t.id} type="button" className="regulations-chip" onClick={() => onOpen(t.id)}>
-              {conditionName(catalog, t)}
-            </button>
-          ))}
+        <div className="stability-condition-tabs" role="tablist">
+          {[test, ...test.campaign]
+            .sort((a, b) => conditionName(catalog, a).localeCompare(conditionName(catalog, b)))
+            .map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={t.id === test.id}
+                className={t.id === test.id ? 'active' : ''}
+                onClick={() => t.id !== test.id && onOpen(t.id)}
+              >
+                {conditionName(catalog, t)}
+                <span className={`stability-tab-dot stability-tab-dot-${t.status}`} />
+              </button>
+            ))}
         </div>
       )}
+
+      <DeadlineCard
+        test={test}
+        busy={busy}
+        onSave={async (deadline) => {
+          const t = await run(() => updateStabilityTest(id, { deadline }))
+          if (t) setTest(t)
+        }}
+      />
+
+      <RemindersCard
+        test={test}
+        busy={busy}
+        onSave={async (userIds) => {
+          const t = await run(() => setWatchers(id, userIds))
+          if (t) setTest(t)
+        }}
+      />
+
+      <DailyNotesCard
+        test={test}
+        busy={busy}
+        onSave={async (date, content) => {
+          const t = await run(() => saveDailyNote(id, { date, content }))
+          if (t) setTest(t)
+          return !!t
+        }}
+        onDelete={async (noteId) => {
+          const t = await run(() => deleteDailyNote(noteId))
+          if (t) setTest(t)
+        }}
+      />
 
       <section className="stability-card">
         <h2>Calendrier des contrôles</h2>

@@ -41,6 +41,15 @@ export interface Observation {
   photos: { id: string; mimeType: string; fileName: string | null }[]
 }
 
+export interface DailyNote {
+  id: string
+  date: string
+  content: string
+  authorName: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface StabilityTest {
   id: string
   campaignId: string
@@ -49,14 +58,18 @@ export interface StabilityTest {
   base: string
   container: string | null
   startDate: string
+  deadline: string | null
   checkpoints: number[]
   status: TestStatus
   conclusion: Conclusion | null
   notes: string | null
   createdByName: string | null
+  createdBy: { id: string; name: string } | null
+  watchers: { user: { id: string; name: string } }[]
   createdAt: string
   formula: { id: string; name: string; status: string }
   observations: Observation[]
+  dailyNotes: DailyNote[]
   checkpointList: Checkpoint[]
   nextCheckpoint: Checkpoint | null
   overdueCount: number
@@ -148,10 +161,12 @@ export interface MaterialStabilityDetail {
 
 export interface CampaignPayload {
   formulaId: string
-  base: string
+  base?: string
   container?: string
   startDate: string
+  deadline?: string
   notes?: string
+  watcherIds?: string[]
   conditions: { condition: string; conditionLabel?: string; checkpoints: number[] }[]
 }
 
@@ -206,6 +221,7 @@ export const updateStabilityTest = (
     notes?: string
     container?: string
     checkpoints?: number[]
+    deadline?: string | null
   },
 ) => request<StabilityTestDetail>(`/tests/${id}`, json('PATCH', payload), 'Impossible de modifier le test')
 
@@ -221,6 +237,18 @@ export const addObservation = (testId: string, payload: ObservationPayload) =>
 
 export const updateObservation = (id: string, payload: ObservationPayload) =>
   request<StabilityTestDetail>(`/observations/${id}`, json('PATCH', payload), "Impossible de modifier l'observation")
+
+export const setWatchers = (testId: string, userIds: string[]) =>
+  request<StabilityTestDetail>(`/tests/${testId}/watchers`, json('PUT', { userIds }), 'Impossible de modifier les destinataires')
+
+export const sendReminderPreview = () =>
+  request<{ email: string; items: number }>('/reminders/preview', { method: 'POST' }, "Impossible d'envoyer l'email")
+
+export const saveDailyNote = (testId: string, payload: { date: string; content: string }) =>
+  request<StabilityTestDetail>(`/tests/${testId}/daily-notes`, json('PUT', payload), "Impossible d'enregistrer la note")
+
+export const deleteDailyNote = (id: string) =>
+  request<StabilityTestDetail>(`/daily-notes/${id}`, { method: 'DELETE' }, 'Impossible de supprimer la note')
 
 export const deleteObservation = (id: string) =>
   request<StabilityTestDetail>(`/observations/${id}`, { method: 'DELETE' }, "Impossible de supprimer l'observation")
@@ -239,7 +267,13 @@ export const deletePhoto = (id: string) =>
   request<StabilityTestDetail>(`/photos/${id}`, { method: 'DELETE' }, 'Impossible de supprimer la photo')
 
 /** Photos need the session header: fetched as a blob and shown through an object URL. */
+/**
+ * URL to display a photo: a short-lived signed R2 link, or a blob: URL for a
+ * legacy photo still stored in the DB (revoke it with URL.revokeObjectURL).
+ */
 export async function fetchPhotoUrl(id: string): Promise<string> {
+  const { url } = await request<{ url: string | null }>(`/photos/${id}/url`, {}, 'Photo indisponible')
+  if (url) return url
   const res = await apiFetch(`${API_URL}/api/stability/photos/${id}`)
   if (!res.ok) throw new Error(await readErrorMessage(res, 'Photo indisponible'))
   return URL.createObjectURL(await res.blob())

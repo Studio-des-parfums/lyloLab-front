@@ -372,7 +372,7 @@
   background: #f1eee7;
 }
 
-.stability-photo button {
+.stability-photo-remove {
   position: absolute;
   top: -6px;
   right: -6px;
@@ -389,7 +389,8 @@
   padding: 0;
 }
 
-.stability-photo:hover button {
+.stability-photo:hover .stability-photo-remove,
+.stability-photo-remove:focus-visible {
   display: flex;
 }
 
@@ -424,4 +425,520 @@
   .stability-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* ── Deadline countdown ─────────────────────────────────────────────── */
+.stability-card h2 svg {
+  vertical-align: -2px;
+  margin-right: 0.3rem;
+}
+
+.stability-countdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.stability-countdown-time {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.stability-countdown-time strong {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  color: #2b2a28;
+}
+
+.stability-countdown.overdue .stability-countdown-time strong {
+  color: #b3261e;
+}
+
+.stability-countdown-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #f1ede4;
+  overflow: hidden;
+}
+
+.stability-countdown-bar > div {
+  height: 100%;
+  background: #8a7a55;
+  transition: width 0.5s linear;
+}
+
+.stability-countdown.overdue .stability-countdown-bar > div {
+  background: #b3261e;
+}
+
+.stability-countdown-dates {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+/* ── Daily notes ────────────────────────────────────────────────────── */
+.stability-daily-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.stability-daily-list li {
+  border-left: 3px solid #d9cfb8;
+  padding: 0.35rem 0 0.35rem 0.8rem;
+}
+
+.stability-daily-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.stability-daily-head button {
+  margin-left: auto;
+}
+
+.stability-daily-list p {
+  margin: 0.25rem 0 0;
+  white-space: pre-wrap;
+}
+
+/* ── New campaign: setup card ───────────────────────────────────────── */
+.stability-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.stability-setup-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1ede4;
+}
+
+.stability-setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.stability-setup-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.stability-setup-title > svg {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  padding: 0.45rem;
+  border-radius: 10px;
+  background: #f6f2e9;
+  color: #8a7a55;
+}
+
+.stability-setup-title h2 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.stability-setup-title p {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+}
+
+.stability-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.stability-field > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6f6858;
+}
+
+.stability-field > span em {
+  font-style: normal;
+  font-weight: 400;
+  color: #a9a291;
+  margin-left: 0.3rem;
+}
+
+.stability-field small {
+  font-size: 0.75rem;
+  color: #a9a291;
+  min-height: 1em;
+}
+
+.stability-field input,
+.stability-field select {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #2b2a28;
+  background: #fcfbf8;
+  border: 1px solid #e6e0d2;
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.stability-field input::placeholder {
+  color: #b5ae9e;
+}
+
+.stability-field input:hover,
+.stability-field select:hover {
+  border-color: #d6cdb8;
+}
+
+.stability-field input:focus,
+.stability-field select:focus {
+  background: #fff;
+  border-color: #8a7a55;
+  box-shadow: 0 0 0 3px rgba(138, 122, 85, 0.15);
+}
+
+.stability-setup-formula select {
+  font-size: 1rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.stability-field-row {
+  display: flex;
+  gap: 0.85rem;
+}
+
+.stability-suffix-input {
+  position: relative;
+}
+
+.stability-suffix-input input {
+  padding-right: 3.5rem;
+}
+
+.stability-suffix-input span {
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  color: #a9a291;
+  pointer-events: none;
+}
+
+.stability-deadline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: #f6f2e9;
+  color: #6f6858;
+  font-size: 0.82rem;
+}
+
+.stability-deadline-chip strong {
+  color: #2b2a28;
+}
+
+@media (max-width: 560px) {
+  .stability-field-row {
+    flex-direction: column;
+  }
+}
+
+/* ── Formula search combobox ───────────────────────────────────────── */
+.stability-combobox {
+  position: relative;
+}
+
+.stability-combobox-input {
+  position: relative;
+}
+
+.stability-combobox-input > svg {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a9a291;
+  pointer-events: none;
+}
+
+.stability-combobox-input input {
+  font-size: 1rem;
+  padding: 0.75rem 2.4rem 0.75rem 2.5rem;
+}
+
+/* Selected formula shown as a dark "placeholder" until the user types. */
+.stability-combobox-input input.has-value::placeholder {
+  color: #2b2a28;
+  font-weight: 600;
+}
+
+.stability-combobox-clear {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #a9a291;
+  cursor: pointer;
+}
+
+.stability-combobox-clear:hover {
+  background: #f1ede4;
+  color: #2b2a28;
+}
+
+.stability-combobox-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e6e0d2;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(43, 42, 40, 0.1);
+}
+
+.stability-combobox-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  color: #2b2a28;
+  cursor: pointer;
+}
+
+.stability-combobox-list li span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stability-combobox-list li em {
+  font-style: normal;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #e7f3ea;
+  color: #2f6b3d;
+}
+
+.stability-combobox-list li.active {
+  background: #f6f2e9;
+}
+
+.stability-combobox-list li.selected {
+  font-weight: 600;
+}
+
+.stability-combobox-list li svg {
+  color: #8a7a55;
+}
+
+.stability-combobox-list .stability-combobox-empty {
+  color: #a9a291;
+  cursor: default;
+}
+
+/* ── Campaign rows & condition tabs ────────────────────────────────── */
+.stability-condition-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.stability-condition-chip {
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  background: #f6f2e9;
+  color: #6f6858;
+}
+
+.stability-condition-chip-cancelled {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.stability-condition-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 1rem 0 0.25rem;
+  border-bottom: 1px solid #ece7dc;
+}
+
+.stability-condition-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #8a8373;
+  cursor: pointer;
+}
+
+.stability-condition-tabs button:hover {
+  color: #2b2a28;
+}
+
+.stability-condition-tabs button.active {
+  color: #2b2a28;
+  font-weight: 600;
+  border-bottom-color: #8a7a55;
+}
+
+.stability-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c9a227;
+}
+
+.stability-tab-dot-completed {
+  background: #3f8f55;
+}
+
+.stability-tab-dot-cancelled {
+  background: #b5ae9e;
+}
+
+/* ── Photo delete confirmation ─────────────────────────────────────── */
+.stability-photo.confirming img,
+.stability-photo.confirming .stability-photo-placeholder {
+  outline: 2px solid #b3261e;
+  outline-offset: 1px;
+}
+
+.stability-photo-confirm {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 6px;
+  background: rgba(179, 38, 30, 0.88);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.stability-photo-confirm-actions {
+  display: flex;
+  gap: 3px;
+}
+
+.stability-photo-confirm button {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+}
+
+.stability-photo-confirm button.yes {
+  background: #fff;
+  color: #b3261e;
+}
+
+.stability-photo-confirm button:hover {
+  filter: brightness(1.1);
+}
+
+/* ── Reminder recipients ───────────────────────────────────────────── */
+.stability-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.stability-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #e6e0d2;
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  color: #6f6858;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.stability-member:hover {
+  border-color: #c9bfa8;
+  color: #2b2a28;
+}
+
+.stability-member.on {
+  background: #f6f2e9;
+  border-color: #8a7a55;
+  color: #2b2a28;
+  font-weight: 600;
+}
+
+.stability-member.fixed {
+  background: #f6f2e9;
+  border-color: transparent;
+  color: #2b2a28;
+  cursor: default;
+}
+
+.stability-member em {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #a9a291;
 }
