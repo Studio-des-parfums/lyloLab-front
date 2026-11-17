@@ -228,3 +228,53 @@
     flex-wrap: wrap;
   }
 }
+
+/* Clés API */
+.apikey-created {
+  background: #f7f1e1;
+  border: 1px solid #e6d6a8;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.88rem;
+  color: #2b2a28;
+  margin-bottom: 1rem;
+}
+.apikey-reveal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+.apikey-reveal code {
+  background: #fff;
+  border: 1px solid #ece7dc;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.82rem;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+.apikey-row { align-items: flex-start; }
+.apikey-revoked { opacity: 0.55; }
+.apikey-row .team-member-meta { display: flex; align-items: center; gap: 0.2rem; flex-wrap: wrap; }
+.apikey-row .team-member-meta .team-icon-btn { width: 24px; height: 24px; }
+.apikey-webhook-edit { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.2rem; }
+.apikey-webhook-edit input,
+.apikey-form input {
+  border: 1px solid #ece7dc;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+  min-width: 0;
+  flex: 1;
+}
+.apikey-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.apikey-new { margin-top: 1rem; }

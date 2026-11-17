@@ -11,6 +11,7 @@ import {
   type TeamDetail,
   type TeamRole,
 } from '../data/authApi'
+import ApiKeysSection from '../components/ApiKeysSection'
 import './TeamPage.css'
 
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -242,6 +243,8 @@ export default function TeamPage() {
           })}
         </ul>
       </section>
+
+      {isAdmin && <ApiKeysSection />}
     </div>
   )
 }
