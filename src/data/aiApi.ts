@@ -25,7 +25,11 @@ export interface ChatMessagePayload {
 }
 
 export interface FormulaSnapshot {
+  /** Formule enregistrée : le serveur y ajoute projet et notes. */
+  formulaId: string | null
   name: string
+  /** Résultat visé (utile tant que la formule n'est pas enregistrée). */
+  description: string | null
   totalVolumeMl: number
   facets: Record<string, number>
   adjustments: Record<string, number>
