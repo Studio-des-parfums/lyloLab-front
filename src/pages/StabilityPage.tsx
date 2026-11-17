@@ -100,8 +100,10 @@ function GradeBadge({ grade }: { grade: Grade | null }) {
   return <span className={`stability-grade stability-grade-${grade}`}>{GRADE_LABEL[grade]}</span>
 }
 
-export default function StabilityPage() {
-  const [view, setView] = useState<View>({ name: 'home', tab: 'due' })
+export default function StabilityPage({ initialTestId }: { initialTestId?: string | null } = {}) {
+  const [view, setView] = useState<View>(
+    initialTestId ? { name: 'test', id: initialTestId } : { name: 'home', tab: 'due' },
+  )
   const catalog = useCatalog()
 
   if (view.name === 'test') {

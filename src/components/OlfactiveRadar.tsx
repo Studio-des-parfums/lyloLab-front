@@ -6,8 +6,26 @@ import './OlfactiveRadar.css'
 
 const SIZE = 820
 const CENTER = SIZE / 2
-const RADIUS = 280
+const RADIUS = 250
 const LEVELS = 5
+
+/**
+ * Display order of the facets around the radar: the longest labels go on the
+ * left/right sides (where text extends horizontally), the shortest on top/bottom.
+ */
+const RADAR_FACETS = (() => {
+  const total = FACETS.length
+  const slots = Array.from({ length: total }, (_, i) => i).sort((a, b) => {
+    const angle = (i: number) => (Math.PI * 2 * i) / total - Math.PI / 2
+    return Math.abs(Math.cos(angle(b))) - Math.abs(Math.cos(angle(a)))
+  })
+  const byLength = [...FACETS].sort((a, b) => b.length - a.length)
+  const order: (typeof FACETS)[number][] = new Array(total)
+  slots.forEach((slot, rank) => {
+    order[slot] = byLength[rank]
+  })
+  return order
+})()
 
 function pointOnAxis(index: number, total: number, value: number) {
   const angle = (Math.PI * 2 * index) / total - Math.PI / 2
@@ -23,7 +41,7 @@ export default function OlfactiveRadar() {
   const { facets, setFacetValue, isLocked } = useFormula()
   const svgRef = useRef<SVGSVGElement>(null)
   const draggingIndex = useRef<number | null>(null)
-  const total = FACETS.length
+  const total = RADAR_FACETS.length
 
   function valueFromPointer(clientX: number, clientY: number, index: number) {
     const svg = svgRef.current
@@ -48,7 +66,7 @@ export default function OlfactiveRadar() {
   function updateValue(index: number, clientX: number, clientY: number) {
     const value = valueFromPointer(clientX, clientY, index)
     if (value === null) return
-    setFacetValue(FACETS[index], value)
+    setFacetValue(RADAR_FACETS[index], value)
   }
 
   function handlePointerDown(index: number) {
@@ -69,7 +87,7 @@ export default function OlfactiveRadar() {
     draggingIndex.current = null
   }
 
-  const values = FACETS.map((f) => facets[f])
+  const values = RADAR_FACETS.map((f) => facets[f])
   const vertices = values.map((v, i) => pointOnAxis(i, total, v))
   const polygonPoints = vertices.map((v) => `${v.x},${v.y}`).join(' ')
 
@@ -86,7 +104,7 @@ export default function OlfactiveRadar() {
         {/* grid levels */}
         {Array.from({ length: LEVELS }).map((_, levelIndex) => {
           const r = (RADIUS * (levelIndex + 1)) / LEVELS
-          const pts = FACETS.map((_, i) => {
+          const pts = RADAR_FACETS.map((_, i) => {
             const angle = (Math.PI * 2 * i) / total - Math.PI / 2
             return `${CENTER + r * Math.cos(angle)},${CENTER + r * Math.sin(angle)}`
           }).join(' ')
@@ -102,7 +120,7 @@ export default function OlfactiveRadar() {
         })}
 
         {/* axes */}
-        {FACETS.map((_, i) => {
+        {RADAR_FACETS.map((_, i) => {
           const angle = (Math.PI * 2 * i) / total - Math.PI / 2
           const x = CENTER + RADIUS * Math.cos(angle)
           const y = CENTER + RADIUS * Math.sin(angle)
@@ -144,7 +162,7 @@ export default function OlfactiveRadar() {
         ))}
 
         {/* labels: facet name, emoji and value placed outside the circle */}
-        {FACETS.map((facet, i) => {
+        {RADAR_FACETS.map((facet, i) => {
           const angle = (Math.PI * 2 * i) / total - Math.PI / 2
           const labelR = RADIUS + 42
           const x = CENTER + labelR * Math.cos(angle)
@@ -157,18 +175,18 @@ export default function OlfactiveRadar() {
             <g key={i} className="radar-label">
               <text
                 x={x}
-                y={y - 6}
+                y={y - 8}
                 textAnchor={textAnchor}
-                fontSize={13}
+                fontSize={17}
                 fill="#3a362c"
               >
                 {display.emoji} {facet}
               </text>
               <text
                 x={x}
-                y={y + 11}
+                y={y + 13}
                 textAnchor={textAnchor}
-                fontSize={13}
+                fontSize={17}
                 fontWeight={600}
                 fill={display.color}
               >

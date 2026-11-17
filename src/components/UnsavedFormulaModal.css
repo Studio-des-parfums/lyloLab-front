@@ -1,0 +1,69 @@
+.unsaved-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(27, 29, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.unsaved-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 460px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.unsaved-modal h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  color: #2b2a28;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unsaved-modal h2 svg {
+  color: #c9a24a;
+}
+
+.unsaved-modal p {
+  margin: 0 0 1rem;
+  color: #5a5548;
+  line-height: 1.5;
+}
+
+.unsaved-modal .unsaved-error {
+  color: #b3261e;
+  font-size: 0.9rem;
+}
+
+.unsaved-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.unsaved-actions .btn {
+  justify-content: center;
+}
+
+.unsaved-discard {
+  color: #b3261e;
+}
+
+.unsaved-cancel {
+  border: none;
+  background: none;
+  color: #8a8373;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.unsaved-cancel:hover {
+  text-decoration: underline;
+}

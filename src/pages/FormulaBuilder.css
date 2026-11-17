@@ -121,7 +121,7 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 0.8fr;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: 1.25rem;
 }
 
@@ -157,6 +157,10 @@
 
 .card-wide {
   grid-column: 1 / -1;
+}
+
+.card-stack {
+  align-self: start;
 }
 
 @media (max-width: 1100px) {
