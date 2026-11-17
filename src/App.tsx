@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 import DashboardPage from './pages/DashboardPage'
@@ -10,12 +10,14 @@ import RegulationsPage from './pages/RegulationsPage'
 import StabilityPage from './pages/StabilityPage'
 import LibraryPage from './pages/LibraryPage'
 import TeamPage from './pages/TeamPage'
+import FormulationRequestsPage from './pages/FormulationRequestsPage'
+import { countPendingRequests } from './data/formulationRequestsApi'
 import AuthPage from './pages/AuthPage'
 import { FormulaProvider, useFormula } from './context/FormulaContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import './App.css'
 
-type FormulationView = 'list' | 'builder'
+type FormulationView = 'list' | 'builder' | 'requests'
 type BuilderOrigin = { type: 'formulas' } | { type: 'clientProject'; projectId: string }
 
 function AppContent() {
@@ -24,6 +26,27 @@ function AppContent() {
   const [builderOrigin, setBuilderOrigin] = useState<BuilderOrigin>({ type: 'formulas' })
   const [openProjectId, setOpenProjectId] = useState<string | null>(null)
   const { loadFormula, startNewFormula, setProjectId, duplicateFormula } = useFormula()
+  // Demandes de formulation en attente : alimente le badge et la cloche.
+  const [pendingRequests, setPendingRequests] = useState(0)
+  function refreshPendingRequests() {
+    countPendingRequests().then(setPendingRequests).catch(() => {})
+  }
+  useEffect(() => {
+    refreshPendingRequests()
+    const timer = setInterval(refreshPendingRequests, 30_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  function openRequests() {
+    setOpenProjectId(null)
+    setActive('formulation')
+    setFormulationView('requests')
+  }
+
+  async function handleOpenRequestFormula(formulaId: string, projectId: string | null) {
+    if (projectId) await handleViewFormulaFromProject(formulaId, projectId)
+    else await handleGoToFormula(formulaId)
+  }
 
   function handleSelect(key: string) {
     if (key === 'formulation') setFormulationView('list')
@@ -127,12 +150,22 @@ function AppContent() {
         switch (formulationView) {
           case 'builder':
             return <FormulaBuilder onBack={handleBackFromBuilder} />
+          case 'requests':
+            return (
+              <FormulationRequestsPage
+                onBack={() => setFormulationView('list')}
+                onOpenFormula={handleOpenRequestFormula}
+                onChanged={refreshPendingRequests}
+              />
+            )
           default:
             return (
               <ProjectsPage
                 onCreateNew={handleCreateNew}
                 onViewFormula={handleViewFormula}
                 onDuplicateFormula={handleDuplicateFormula}
+                pendingRequests={pendingRequests}
+                onOpenRequests={openRequests}
               />
             )
         }
@@ -152,7 +185,7 @@ function AppContent() {
     <div className="app-layout">
       <Sidebar active={active} onSelect={handleSelect} />
       <div className="app-main">
-        <TopBar />
+        <TopBar pendingRequests={pendingRequests} onOpenRequests={openRequests} />
         {renderContent()}
       </div>
     </div>

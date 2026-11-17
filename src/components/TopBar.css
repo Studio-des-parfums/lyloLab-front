@@ -83,3 +83,14 @@
   border-color: #c9a24a;
   color: #c9a24a;
 }
+
+.topbar-bell {
+  position: relative; border: none; background: none; color: #8a8373; width: 34px; height: 34px;
+  border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.topbar-bell:hover { background: #f5f2ea; color: #2b2a28; }
+.topbar-bell-count {
+  position: absolute; top: 2px; right: 0; background: #b23b3b; color: #fff; border-radius: 999px;
+  font-size: 0.62rem; font-weight: 700; min-width: 16px; height: 16px; padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
