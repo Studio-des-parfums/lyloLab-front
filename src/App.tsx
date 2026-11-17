@@ -166,11 +166,6 @@ function AppContent() {
     else await handleGoToFormula(id)
   }
 
-  function handleOpenProject(projectId: string) {
-    setOpenProjectId(projectId)
-    setActive('clients')
-  }
-
   function renderContent() {
     switch (active) {
       case 'clients':
@@ -237,7 +232,7 @@ function AppContent() {
         return (
           <DashboardPage
             onOpenFormula={handleOpenFormulaFromDashboard}
-            onOpenProject={handleOpenProject}
+            onOpenLineage={handleOpenLineage}
             onNewFormula={handleCreateNewFromDashboard}
             onOpenMaterials={() => setActive('materials')}
             onOpenStabilityTest={(id) => {

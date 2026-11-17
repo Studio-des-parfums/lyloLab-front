@@ -32,7 +32,8 @@ import './DashboardPage.css'
 
 interface DashboardPageProps {
   onOpenFormula: (id: string, projectId: string | null) => void
-  onOpenProject: (projectId: string) => void
+  /** Page d'une formule (arbre des versions). */
+  onOpenLineage: (formulaId: string, projectId: string | null) => void
   onNewFormula: () => void
   onOpenMaterials: () => void
   onOpenStabilityTest: (testId: string) => void
@@ -97,7 +98,7 @@ function Card({
 
 export default function DashboardPage({
   onOpenFormula,
-  onOpenProject,
+  onOpenLineage,
   onNewFormula,
   onOpenMaterials,
   onOpenStabilityTest,
@@ -198,24 +199,27 @@ export default function DashboardPage({
             <StabilityCard key={reloadKey} onOpenTest={onOpenStabilityTest} onOpenAll={onOpenStability} />
 
             {/* 2. Deadlines */}
-            <Card title="Échéances projets" icon={<CalendarClock size={16} />}>
+            <Card title="Échéances formules" icon={<CalendarClock size={16} />}>
               {data.deadlines.length === 0 ? (
                 <p className="home-empty">Aucune échéance dans les 30 prochains jours.</p>
               ) : (
                 <ul className="home-list">
                   {data.deadlines.map((deadline) => (
-                    <li key={deadline.projectId}>
+                    <li key={deadline.formulaId}>
                       <button
                         type="button"
                         className="home-row"
-                        onClick={() => onOpenProject(deadline.projectId)}
+                        onClick={() => onOpenLineage(deadline.formulaId, deadline.projectId)}
                       >
                         <span className="home-row-main">
-                          <span className="home-row-title">{deadline.projectName}</span>
+                          <span className="home-row-title">{deadline.formulaName}</span>
                           <span className="home-row-meta">
-                            {deadline.clientName} · {dateFormat.format(new Date(deadline.endDate))} ·{' '}
-                            {plural(deadline.draftCount, 'brouillon')},{' '}
-                            {plural(deadline.completedCount, 'finalisée')}
+                            {deadline.projectName
+                              ? `${deadline.clientName ? `${deadline.clientName} — ` : ''}${deadline.projectName} · `
+                              : ''}
+                            {dateFormat.format(new Date(deadline.endDate))} ·{' '}
+                            {plural(deadline.versionCount, 'version')}
+                            {deadline.hasFinal ? ' · version finale choisie' : ''}
                           </span>
                         </span>
                         <span

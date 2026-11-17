@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ArrowLeft, Check, CircleCheck, CopyPlus, ExternalLink, Pencil, StickyNote } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Check, CircleCheck, CopyPlus, ExternalLink, Pencil, StickyNote } from 'lucide-react'
 import VersionGraph from '../components/VersionGraph'
 import FormulaNotesModal from '../components/FormulaNotesModal'
 import { fetchLineage, parentCode, type FormulaLineageDetail, type LineageVersion } from '../data/lineageApi'
 import { formulaAuthor, versionLabel } from '../data/formulasApi'
-import { markFinalVersion, unmarkFinalVersion, updateFormulaDescription } from '../data/formulaCollabApi'
+import {
+  markFinalVersion,
+  unmarkFinalVersion,
+  updateFormulaDescription,
+  updateFormulaSchedule,
+} from '../data/formulaCollabApi'
 import '../components/FormulaLineageTable.css'
 import './FormulaLineagePage.css'
 
@@ -29,6 +34,8 @@ export default function FormulaLineagePage({ formulaId, backLabel, onBack, onOpe
   const [goalDraft, setGoalDraft] = useState('')
   const [notesOf, setNotesOf] = useState<LineageVersion | null>(null)
   const [confirmFinalId, setConfirmFinalId] = useState<string | null>(null)
+  const [editingDates, setEditingDates] = useState(false)
+  const [dates, setDates] = useState({ startDate: '', endDate: '' })
 
   const load = useCallback(
     () =>
@@ -153,6 +160,63 @@ export default function FormulaLineagePage({ formulaId, backLabel, onBack, onOpe
           <p className={lineage.description ? '' : 'lineage-goal-empty'}>
             {lineage.description || 'Pas encore défini : décrivez à quoi doit ressembler la version finale.'}
           </p>
+        )}
+      </section>
+
+      <section className="lineage-page-card lineage-dates">
+        <CalendarDays size={16} className="lineage-dates-icon" />
+        {editingDates ? (
+          <>
+            <label>
+              Début
+              <input type="date" value={dates.startDate} onChange={(e) => setDates((d) => ({ ...d, startDate: e.target.value }))} />
+            </label>
+            <label>
+              Fin
+              <input type="date" value={dates.endDate} onChange={(e) => setDates((d) => ({ ...d, endDate: e.target.value }))} />
+            </label>
+            <button
+              type="button"
+              className="btn btn-outline"
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  await updateFormulaSchedule(lineage.rootId, {
+                    startDate: dates.startDate || null,
+                    endDate: dates.endDate || null,
+                  })
+                  setEditingDates(false)
+                })
+              }
+            >
+              <Check size={14} /> Enregistrer
+            </button>
+            <button type="button" className="lineage-close-inline" onClick={() => setEditingDates(false)}>
+              Annuler
+            </button>
+          </>
+        ) : (
+          <>
+            <span>
+              <strong>Début :</strong> {lineage.startDate ? dateFormat.format(new Date(lineage.startDate)) : '—'}
+            </span>
+            <span>
+              <strong>Fin :</strong> {lineage.endDate ? dateFormat.format(new Date(lineage.endDate)) : '—'}
+            </span>
+            <button
+              type="button"
+              className="lineage-goal-edit"
+              onClick={() => {
+                setDates({
+                  startDate: lineage.startDate?.slice(0, 10) ?? '',
+                  endDate: lineage.endDate?.slice(0, 10) ?? '',
+                })
+                setEditingDates(true)
+              }}
+            >
+              <Pencil size={13} /> Modifier les dates
+            </button>
+          </>
         )}
       </section>
 

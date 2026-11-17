@@ -49,6 +49,12 @@ export const updateFormulaDescription = (id: string, description: string | null)
     body: JSON.stringify({ description }),
   }, 'Description non enregistrée')
 
+export const updateFormulaSchedule = (id: string, dates: { startDate?: string | null; endDate?: string | null }) =>
+  send<{ startDate: string | null; endDate: string | null }>(`${formulaUrl(id)}/schedule`, {
+    method: 'PATCH',
+    body: JSON.stringify(dates),
+  }, 'Dates non enregistrées')
+
 export const listNotes = (id: string) => send<FormulaNote[]>(`${formulaUrl(id)}/notes`)
 export const addNote = (id: string, body: string) =>
   send<FormulaNote>(`${formulaUrl(id)}/notes`, { method: 'POST', body: JSON.stringify({ body }) }, 'Note non enregistrée')

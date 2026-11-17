@@ -10,15 +10,18 @@ export interface DashboardKpis {
   outOfStockMaterials: number
 }
 
+/** Échéance d'une formule (dates communes à toutes ses versions). */
 export interface DashboardDeadline {
-  projectId: string
-  projectName: string
-  clientName: string
+  formulaId: string
+  formulaName: string
+  projectId: string | null
+  projectName: string | null
+  clientName: string | null
   endDate: string
-  /** Negative when the project is overdue. */
+  /** Negative when the formula is overdue. */
   daysLeft: number
-  draftCount: number
-  completedCount: number
+  versionCount: number
+  hasFinal: boolean
 }
 
 export interface DashboardDraft {

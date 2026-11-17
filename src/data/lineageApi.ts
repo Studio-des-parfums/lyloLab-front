@@ -19,6 +19,8 @@ export interface FormulaLineageDetail {
   rootId: string
   name: string
   description: string | null
+  startDate: string | null
+  endDate: string | null
   finalVersionId: string | null
   project: {
     id: string

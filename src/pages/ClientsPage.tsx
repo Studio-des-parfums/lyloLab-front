@@ -75,8 +75,6 @@ const EMPTY_CLIENT_FORM = {
 const EMPTY_PROJECT_FORM = {
   name: '',
   description: '',
-  startDate: '',
-  endDate: '',
 }
 
 function ClientsList({ onOpenClient }: { onOpenClient: (clientId: string) => void }) {
@@ -338,8 +336,6 @@ function ClientDetail({
         {
           name: projectForm.name.trim(),
           description: projectForm.description.trim() || undefined,
-          startDate: projectForm.startDate || undefined,
-          endDate: projectForm.endDate || undefined,
         },
         clientId,
       )
@@ -484,22 +480,6 @@ function ClientDetail({
                 onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))}
               />
             </label>
-            <label>
-              Date de début
-              <input
-                type="date"
-                value={projectForm.startDate}
-                onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))}
-              />
-            </label>
-            <label>
-              Date de fin
-              <input
-                type="date"
-                value={projectForm.endDate}
-                onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))}
-              />
-            </label>
             <div className="client-detail-form-actions">
               <button
                 type="button"
@@ -562,7 +542,7 @@ function ProjectDetailView({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ description: '', startDate: '', endDate: '' })
+  const [form, setForm] = useState({ description: '' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -577,8 +557,6 @@ function ProjectDetailView({
         setProject(p)
         setForm({
           description: p.description ?? '',
-          startDate: p.startDate ? p.startDate.slice(0, 10) : '',
-          endDate: p.endDate ? p.endDate.slice(0, 10) : '',
         })
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Erreur inconnue'))
@@ -590,8 +568,6 @@ function ProjectDetailView({
     try {
       const updated = await updateProject(projectId, {
         description: form.description,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
       })
       setProject(updated)
       setEditing(false)
@@ -635,22 +611,6 @@ function ProjectDetailView({
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </label>
-          <label>
-            Date de début
-            <input
-              type="date"
-              value={form.startDate}
-              onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-            />
-          </label>
-          <label>
-            Date de fin
-            <input
-              type="date"
-              value={form.endDate}
-              onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-            />
-          </label>
           <div className="client-detail-form-actions">
             <button type="button" className="btn btn-primary" disabled={saving} onClick={handleSave}>
               Enregistrer
@@ -665,14 +625,6 @@ function ProjectDetailView({
           <div>
             <dt>Description</dt>
             <dd>{project.description || '—'}</dd>
-          </div>
-          <div>
-            <dt>Début</dt>
-            <dd>{project.startDate ? new Date(project.startDate).toLocaleDateString() : '—'}</dd>
-          </div>
-          <div>
-            <dt>Fin</dt>
-            <dd>{project.endDate ? new Date(project.endDate).toLocaleDateString() : '—'}</dd>
           </div>
         </dl>
       )}

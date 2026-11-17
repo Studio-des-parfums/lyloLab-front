@@ -22,3 +22,9 @@
 @media (max-width: 640px) {
   .lineage-page { padding: 1.5rem 1rem 3rem; }
 }
+
+.lineage-dates { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: #fff; border: 1px solid #ece7dc; border-radius: 12px; padding: 0.6rem 0.9rem; font-size: 0.88rem; color: #5a5548; }
+.lineage-dates strong { color: #2b2a28; font-weight: 600; }
+.lineage-dates-icon { color: #c9a24a; }
+.lineage-dates label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+.lineage-dates input { border: 1px solid #ece7dc; border-radius: 8px; padding: 0.3rem 0.5rem; font: inherit; font-size: 0.85rem; }
