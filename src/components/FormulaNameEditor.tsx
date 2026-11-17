@@ -4,7 +4,7 @@ import { useFormula } from '../context/FormulaContext'
 import './FormulaNameEditor.css'
 
 export default function FormulaNameEditor() {
-  const { formulaName, setFormulaName, isLocked } = useFormula()
+  const { formulaName, setFormulaName, isLocked, formulaVersion, formulaCode, formulaId, finalVersionId } = useFormula()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(formulaName)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -46,6 +46,12 @@ export default function FormulaNameEditor() {
   return (
     <h1 className="dashboard-title">
       {formulaName}{' '}
+      {formulaVersion !== null ? (
+        <span className="formula-version-badge">{formulaCode ?? `v${formulaVersion}`}</span>
+      ) : null}
+      {formulaId && formulaId === finalVersionId && (
+        <span className="formula-final-badge">Version finale</span>
+      )}
       {!isLocked && (
         <button
           type="button"

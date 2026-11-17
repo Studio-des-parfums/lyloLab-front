@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Beaker, Briefcase, Copy, Plus } from 'lucide-react'
+import { ArrowLeft, Briefcase, Plus } from 'lucide-react'
 import {
   getClient,
   getClientDisplayName,
@@ -11,14 +11,14 @@ import {
   type ProjectDetail,
 } from '../data/clientsApi'
 import { useFormula } from '../context/FormulaContext'
-import { formulaAuthor } from '../data/formulasApi'
+import FormulaLineageTable from '../components/FormulaLineageTable'
+import { countLineages } from '../data/formulasApi'
 import './ProjectsPage.css'
 import './ClientsPage.css'
 
 interface ClientsPageProps {
-  onViewFormula: (id: string, projectId: string) => void
+  onOpenLineage: (id: string, projectId: string) => void
   onCreateFormula: (projectId: string) => void
-  onDuplicateFormula: (id: string, projectId: string) => void
   openProjectId?: string | null
 }
 
@@ -28,9 +28,8 @@ type View =
   | { name: 'project'; projectId: string }
 
 export default function ClientsPage({
-  onViewFormula,
+  onOpenLineage,
   onCreateFormula,
-  onDuplicateFormula,
   openProjectId,
 }: ClientsPageProps) {
   const [view, setView] = useState<View>(
@@ -56,9 +55,8 @@ export default function ClientsPage({
       <ProjectDetailView
         projectId={view.projectId}
         onBack={(clientId) => setView({ name: 'client', clientId })}
-        onViewFormula={onViewFormula}
+        onOpenLineage={onOpenLineage}
         onCreateFormula={onCreateFormula}
-        onDuplicateFormula={onDuplicateFormula}
       />
     )
   }
@@ -552,15 +550,13 @@ function ClientDetail({
 function ProjectDetailView({
   projectId,
   onBack,
-  onViewFormula,
+  onOpenLineage,
   onCreateFormula,
-  onDuplicateFormula,
 }: {
   projectId: string
   onBack: (clientId: string) => void
-  onViewFormula: (id: string, projectId: string) => void
+  onOpenLineage: (id: string, projectId: string) => void
   onCreateFormula: (projectId: string) => void
-  onDuplicateFormula: (id: string, projectId: string) => void
 }) {
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -683,7 +679,7 @@ function ProjectDetailView({
 
       <div className="client-detail-projects">
         <div className="clients-header">
-          <h2>Formules ({project.formulas.length})</h2>
+          <h2>Formules ({countLineages(project.formulas)})</h2>
           <button
             type="button"
             className="btn btn-primary"
@@ -695,50 +691,11 @@ function ProjectDetailView({
         {project.formulas.length === 0 ? (
           <p className="clients-empty">Aucune formule associée à ce projet.</p>
         ) : (
-          <table className="projects-table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Statut</th>
-                <th>Créée par</th>
-                <th>Date</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {project.formulas.map((f) => (
-                <tr key={f.id} onClick={() => onViewFormula(f.id, projectId)}>
-                  <td>
-                    <span className="projects-table-name">{f.name}</span>
-                    {f.materializedAs && (
-                      <span className="project-card-tag">
-                        <Beaker size={11} /> Transformée en matière première
-                      </span>
-                    )}
-                  </td>
-                  <td>{f.status === 'completed' ? 'Finalisée' : 'Brouillon'}</td>
-                  <td className="projects-table-author">{formulaAuthor(f) ?? '—'}</td>
-                  <td className="projects-table-date">
-                    {new Date(f.createdAt).toLocaleDateString()}
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="project-card-delete"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDuplicateFormula(f.id, projectId)
-                      }}
-                      aria-label="Dupliquer en nouvelle version"
-                      title="Dupliquer en nouvelle version"
-                    >
-                      <Copy size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <FormulaLineageTable
+            formulas={project.formulas}
+            showStatus
+            onOpenFormula={(id) => onOpenLineage(id, projectId)}
+          />
         )}
       </div>
     </div>

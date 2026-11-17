@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Plus, Trash2, Beaker, Copy, Inbox, FileEdit, Play, User, X } from 'lucide-react'
+import { Plus, Inbox, FileEdit, Play, User, X } from 'lucide-react'
 import {
   deleteFormula,
-  formulaAuthor,
   listFormulas,
   type FormulaSummary,
 } from '../data/formulasApi'
 import { useFormula } from '../context/FormulaContext'
+import FormulaLineageTable from '../components/FormulaLineageTable'
+import { countLineages } from '../data/formulasApi'
 import { useAuth } from '../context/AuthContext'
 import {
   listFormulationRequests,
@@ -18,7 +19,7 @@ import './ProjectsPage.css'
 interface ProjectsPageProps {
   onCreateNew: () => void
   onViewFormula: (id: string) => void
-  onDuplicateFormula: (id: string) => void
+  onOpenLineage: (id: string) => void
   pendingRequests: number
   onOpenRequests: () => void
 }
@@ -26,7 +27,7 @@ interface ProjectsPageProps {
 export default function ProjectsPage({
   onCreateNew,
   onViewFormula,
-  onDuplicateFormula,
+  onOpenLineage,
   pendingRequests,
   onOpenRequests,
 }: ProjectsPageProps) {
@@ -102,7 +103,7 @@ export default function ProjectsPage({
         </div>
         <div className="projects-header-actions">
           <button type="button" className="btn btn-outline" onClick={() => setDraftsOpen(true)}>
-            <FileEdit size={16} /> Brouillons ({drafts.length})
+            <FileEdit size={16} /> Brouillons ({countLineages(drafts)})
           </button>
           <button type="button" className="btn btn-outline requests-entry" onClick={onOpenRequests}>
             <Inbox size={16} /> Demandes de formulation
@@ -154,18 +155,16 @@ export default function ProjectsPage({
             )}
           </section>
           <FormulaTable
-            title={`Formules en cours (${inProgress.length})`}
+            title="Formules en cours"
             formulas={inProgress}
             emptyLabel="Aucune formule en cours."
-            onViewFormula={onViewFormula}
-            onDuplicateFormula={onDuplicateFormula}
+          onOpenLineage={onOpenLineage}
           />
           <FormulaTable
-            title={`Formules finalisées (${completed.length})`}
+            title="Formules finalisées"
             formulas={completed}
             emptyLabel="Aucune formule finalisée pour le moment."
-            onViewFormula={onViewFormula}
-            onDuplicateFormula={onDuplicateFormula}
+          onOpenLineage={onOpenLineage}
           />
         </div>
       )}
@@ -177,11 +176,10 @@ export default function ProjectsPage({
               <X size={18} />
             </button>
             <FormulaTable
-              title={`Mes brouillons (${drafts.length})`}
+              title="Mes brouillons"
               formulas={drafts}
               emptyLabel="Aucun brouillon."
-              onViewFormula={onViewFormula}
-              onDuplicateFormula={onDuplicateFormula}
+          onOpenLineage={onOpenLineage}
               onDelete={handleDelete}
               deletingId={deletingId}
             />
@@ -196,8 +194,7 @@ interface FormulaTableProps {
   title: string
   formulas: FormulaSummary[]
   emptyLabel: string
-  onViewFormula: (id: string) => void
-  onDuplicateFormula: (id: string) => void
+  onOpenLineage: (id: string) => void
   onDelete?: (id: string) => void
   deletingId?: string | null
 }
@@ -206,76 +203,24 @@ function FormulaTable({
   title,
   formulas,
   emptyLabel,
-  onViewFormula,
-  onDuplicateFormula,
+  onOpenLineage,
   onDelete,
   deletingId,
 }: FormulaTableProps) {
   return (
     <section className="projects-column">
-      <h2>{title}</h2>
+      <h2>
+        {title} ({countLineages(formulas)})
+      </h2>
       {formulas.length === 0 ? (
         <p className="projects-empty">{emptyLabel}</p>
       ) : (
-        <table className="projects-table">
-          <thead>
-            <tr>
-              <th>Nom</th>
-              <th>Créée par</th>
-              <th>Date</th>
-              <th />
-              {onDelete && <th />}
-            </tr>
-          </thead>
-          <tbody>
-            {formulas.map((f) => (
-              <tr key={f.id} onClick={() => onViewFormula(f.id)}>
-                <td>
-                  <span className="projects-table-name">{f.name}</span>
-                  {f.materializedAs && (
-                    <span className="project-card-tag">
-                      <Beaker size={11} /> Transformée en matière première
-                    </span>
-                  )}
-                </td>
-                <td className="projects-table-author">{formulaAuthor(f) ?? '—'}</td>
-                <td className="projects-table-date">
-                  {new Date(f.createdAt).toLocaleDateString()}
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="project-card-delete"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDuplicateFormula(f.id)
-                    }}
-                    aria-label="Dupliquer en nouvelle version"
-                    title="Dupliquer en nouvelle version"
-                  >
-                    <Copy size={16} />
-                  </button>
-                </td>
-                {onDelete && (
-                  <td>
-                    <button
-                      type="button"
-                      className="project-card-delete"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDelete(f.id)
-                      }}
-                      disabled={deletingId === f.id}
-                      aria-label="Supprimer le brouillon"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <FormulaLineageTable
+          formulas={formulas}
+          onOpenFormula={onOpenLineage}
+          onDelete={onDelete}
+          deletingId={deletingId}
+        />
       )}
     </section>
   )

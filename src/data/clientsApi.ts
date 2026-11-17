@@ -5,8 +5,14 @@ export interface ProjectFormulaSummary extends FormulaAuthorInfo {
   id: string
   name: string
   status: 'draft' | 'completed'
+  version: number
+  code: string | null
+  rootFormulaId: string | null
+  finalVersionId: string | null
+  description: string | null
   createdAt: string
   materializedAs: { id: string } | null
+  _count?: { notes: number }
 }
 
 export interface Project {

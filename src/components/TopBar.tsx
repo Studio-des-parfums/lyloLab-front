@@ -1,13 +1,15 @@
-import { Bell, LogOut, Search } from 'lucide-react'
+import { LogOut, Search } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 import { useAuth } from '../context/AuthContext'
 import './TopBar.css'
 
 interface TopBarProps {
   pendingRequests: number
   onOpenRequests: () => void
+  onOpenFormula: (formulaId: string, projectId: string | null) => void
 }
 
-export default function TopBar({ pendingRequests, onOpenRequests }: TopBarProps) {
+export default function TopBar({ pendingRequests, onOpenRequests, onOpenFormula }: TopBarProps) {
   const { user, logout } = useAuth()
 
   return (
@@ -21,16 +23,11 @@ export default function TopBar({ pendingRequests, onOpenRequests }: TopBarProps)
       </div>
       {user && (
         <div className="topbar-user">
-          <button
-            type="button"
-            className="topbar-bell"
-            onClick={onOpenRequests}
-            aria-label={`Demandes de formulation en attente : ${pendingRequests}`}
-            title={pendingRequests > 0 ? `${pendingRequests} demande(s) de formulation en attente` : 'Aucune demande en attente'}
-          >
-            <Bell size={17} />
-            {pendingRequests > 0 && <span className="topbar-bell-count">{pendingRequests > 9 ? '9+' : pendingRequests}</span>}
-          </button>
+          <NotificationBell
+            pendingRequests={pendingRequests}
+            onOpenRequests={onOpenRequests}
+            onOpenFormula={onOpenFormula}
+          />
           <span className="topbar-user-text">
             <span className="topbar-user-name">{user.name}</span>
             <span className="topbar-user-team">{user.team.name}</span>

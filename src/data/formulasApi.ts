@@ -9,12 +9,15 @@ export type FormulaStatus = 'draft' | 'completed'
 
 export interface CreateFormulaPayload {
   name: string
+  description?: string | null
   facets: Record<string, number>
   adjustments: Record<string, number>
   lines: CreateFormulaLinePayload[]
   totalVolumeMl?: number | null
   status?: FormulaStatus
   projectId?: string | null
+  /** Crée une nouvelle version de cette formule. */
+  versionOfId?: string
 }
 
 export interface FormulaProjectInfo {
@@ -43,10 +46,19 @@ export interface FormulaSummary extends FormulaAuthorInfo {
   id: string
   name: string
   status: FormulaStatus
+  version: number
+  /** Identifiant lisible : XXX-XXX-n (branche : XXX-XXX-n-m). */
+  code: string | null
+  rootFormulaId: string | null
+  /** Version retenue comme finale pour toute la formule. */
+  finalVersionId: string | null
+  /** Résultat visé, commun à toutes les versions. */
+  description: string | null
   totalVolumeMl: number | null
   createdAt: string
   materializedAs: { id: string } | null
   project: FormulaProjectInfo | null
+  _count?: { notes: number }
 }
 
 export interface FormulaLineDetail {
@@ -69,6 +81,14 @@ export interface FormulaDetail extends FormulaAuthorInfo {
   id: string
   name: string
   status: FormulaStatus
+  version: number
+  /** Identifiant lisible : XXX-XXX-n (branche : XXX-XXX-n-m). */
+  code: string | null
+  rootFormulaId: string | null
+  /** Version retenue comme finale pour toute la formule. */
+  finalVersionId: string | null
+  /** Résultat visé, commun à toutes les versions. */
+  description: string | null
   facets: Record<string, number>
   adjustments: Record<string, number>
   totalVolumeMl: number | null
@@ -139,4 +159,38 @@ export async function convertFormulaToMaterial(id: string) {
     throw new Error(body?.message ?? `Failed to convert formula (${res.status})`)
   }
   return res.json()
+}
+
+export interface FormulaLineage<T> {
+  /** Dernière version (numéro le plus élevé). */
+  latest: T
+  /** Versions précédentes, de la plus récente à la plus ancienne. */
+  older: T[]
+}
+
+/** Regroupe les versions d'une même formule (même racine) ; l'ordre des lignées suit la liste reçue. */
+export function groupVersions<T extends { id: string; version: number; rootFormulaId: string | null }>(
+  formulas: T[],
+): FormulaLineage<T>[] {
+  const byRoot = new Map<string, T[]>()
+  for (const f of formulas) {
+    const root = f.rootFormulaId ?? f.id
+    const list = byRoot.get(root)
+    if (list) list.push(f)
+    else byRoot.set(root, [f])
+  }
+  return [...byRoot.values()].map((versions) => {
+    const [latest, ...older] = [...versions].sort((a, b) => b.version - a.version)
+    return { latest, older }
+  })
+}
+
+/** Nombre de formules distinctes (lignées), pour les compteurs. */
+export function countLineages(formulas: { id: string; rootFormulaId: string | null }[]): number {
+  return new Set(formulas.map((f) => f.rootFormulaId ?? f.id)).size
+}
+
+/** Identifiant à afficher pour une version (repli sur vN pour une formule sans code). */
+export function versionLabel(f: { code?: string | null; version: number }): string {
+  return f.code ?? `v${f.version}`
 }

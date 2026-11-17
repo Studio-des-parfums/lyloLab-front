@@ -1,0 +1,17 @@
+.version-graph { background: #fff; border: 1px solid #ece7dc; border-radius: 14px; padding: 0.75rem; overflow-x: auto; }
+.version-graph svg { display: block; }
+.vg-edge { fill: none; stroke-width: 3; stroke-linecap: round; opacity: 0.85; }
+.vg-node { cursor: pointer; outline: none; }
+.vg-node:hover circle:not(.vg-final-ring) { filter: brightness(1.08); }
+.vg-node:focus-visible circle { stroke-width: 4; }
+.vg-final-ring { fill: none; stroke: #2f7a45; stroke-width: 3; }
+.vg-check { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.vg-label { text-anchor: middle; font-size: 12px; font-weight: 700; fill: #2b2a28; }
+.vg-node.selected .vg-label { fill: #8a6a1f; }
+.vg-legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.75rem; color: #8a8373; margin-top: 0.4rem; padding: 0 0.25rem; }
+.vg-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.vg-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 2px solid #c9a24a; }
+.vg-dot-draft { background: #fff; }
+.vg-dot-done { background: #c9a24a; }
+.vg-dot-final { background: #c9a24a; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2f7a45; }
+.vg-legend-hint { margin-left: auto; font-style: italic; }

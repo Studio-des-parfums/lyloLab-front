@@ -1,0 +1,21 @@
+.formula-notes { max-width: 720px; margin: 0.2rem 0 0.5rem; }
+.formula-notes-toggle {
+  border: none; background: none; color: #5a5548; font-size: 0.85rem; cursor: pointer; padding: 0.2rem 0;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.formula-notes-toggle:hover { color: #2b2a28; }
+.formula-notes-body { margin-top: 0.4rem; background: #fff; border: 1px solid #ece7dc; border-radius: 10px; padding: 0.7rem; }
+.formula-notes-form { display: flex; gap: 0.5rem; align-items: flex-start; }
+.formula-notes-form textarea {
+  flex: 1; min-width: 0; border: 1px solid #ece7dc; border-radius: 8px; padding: 0.45rem 0.6rem;
+  font: inherit; font-size: 0.85rem; resize: vertical; outline: none;
+}
+.formula-notes-form textarea:focus { border-color: #c9a24a; }
+.formula-notes-error { color: #b23b3b; font-size: 0.8rem; margin: 0.4rem 0 0; }
+.formula-notes-empty { color: #8a8373; font-size: 0.82rem; margin: 0.6rem 0 0; }
+.formula-notes-list { list-style: none; margin: 0.6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; max-height: 260px; overflow: auto; }
+.formula-notes-list li { border-left: 2px solid #ece7dc; padding-left: 0.6rem; }
+.formula-notes-list p { margin: 0; font-size: 0.86rem; color: #2b2a28; white-space: pre-wrap; }
+.formula-notes-meta { font-size: 0.74rem; color: #8a8373; display: inline-flex; align-items: center; gap: 0.3rem; }
+.formula-notes-meta button { border: none; background: none; color: #8a8373; cursor: pointer; padding: 0.1rem; display: inline-flex; }
+.formula-notes-meta button:hover { color: #b23b3b; }

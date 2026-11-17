@@ -1,0 +1,16 @@
+.notes-modal h2 { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; }
+.notes-modal h2 svg { color: #c9a24a; }
+.notes-modal-form { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 1rem; }
+.notes-modal-form textarea {
+  flex: 1; min-width: 0; border: 1px solid #ece7dc; border-radius: 8px; padding: 0.45rem 0.6rem;
+  font: inherit; font-size: 0.85rem; resize: vertical; outline: none;
+}
+.notes-modal-form textarea:focus { border-color: #c9a24a; }
+.notes-modal-error { color: #b23b3b; font-size: 0.8rem; }
+.notes-modal-empty { color: #8a8373; font-size: 0.85rem; text-align: center; margin: 1rem 0; }
+.notes-modal-version { margin-bottom: 1rem; }
+.notes-modal-version h3 { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.4rem; font-size: 0.85rem; }
+.notes-modal-version ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.notes-modal-version li { border-left: 2px solid #ece7dc; padding-left: 0.6rem; }
+.notes-modal-version p { margin: 0; font-size: 0.86rem; color: #2b2a28; white-space: pre-wrap; }
+.notes-modal-version span { font-size: 0.74rem; color: #8a8373; }

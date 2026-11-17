@@ -39,17 +39,6 @@ import {
 const DEFAULT_FORMULA_NAME = 'Mon Accord sur Mesure'
 const DEFAULT_TOTAL_VOLUME_ML = 50
 
-const VERSION_SUFFIX_PATTERN = /^(.*)\s+v(\d+)$/i
-
-function nextVersionedName(name: string): string {
-  const match = name.match(VERSION_SUFFIX_PATTERN)
-  if (match) {
-    const [, base, version] = match
-    return `${base} v${parseInt(version, 10) + 1}`
-  }
-  return `${name} v2`
-}
-
 export type SaveStatus = 'idle' | 'saving' | 'success' | 'error'
 
 interface FormulaContextValue {
@@ -75,6 +64,9 @@ interface FormulaContextValue {
 
   formulaName: string
   setFormulaName: (name: string) => void
+  /** Résultat visé, commun à toutes les versions. */
+  formulaDescription: string
+  setFormulaDescription: (description: string) => void
 
   /** Applies a set of assistant-proposed changes in one go, once the user accepted them. */
   applyAiChanges: (changes: FormulaChange[]) => void
@@ -84,12 +76,21 @@ interface FormulaContextValue {
 
   saveStatus: SaveStatus
   saveError: string | null
-  saveFormula: () => Promise<void>
+  /** Resolves to true when the formula was persisted. */
+  saveFormula: () => Promise<boolean>
+  /** True when leaving the builder now would lose work (unsaved new formula or edits since last save). */
+  hasUnsavedChanges: boolean
 
   formulaId: string | null
   /** Author and creation date of the saved formula; null for a new, unsaved one. */
   formulaOrigin: { author: string | null; createdAt: string } | null
   formulaStatus: 'draft' | 'completed'
+  /** Numéro de version : celui de la formule chargée, ou celui à venir pour une nouvelle version. */
+  formulaVersion: number | null
+  /** Identifiant XXX-XXX-n de la version ouverte (null tant qu'elle n'est pas enregistrée). */
+  formulaCode: string | null
+  /** Version finale de la formule (toutes versions confondues), s'il y en a une. */
+  finalVersionId: string | null
   /** A finalized formula is read-only: it can only be duplicated into a new version. */
   isLocked: boolean
   finalizeStatus: SaveStatus
@@ -135,6 +136,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   const [manualMl, setManualMl] = useState<Record<string, number> | null>(null)
 
   const [formulaName, setFormulaName] = useState(DEFAULT_FORMULA_NAME)
+  const [formulaDescription, setFormulaDescription] = useState('')
   const [totalVolumeMl, setTotalVolumeMlState] = useState(DEFAULT_TOTAL_VOLUME_ML)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -143,6 +145,11 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   const [formulaOrigin, setFormulaOrigin] =
     useState<FormulaContextValue['formulaOrigin']>(null)
   const [formulaStatus, setFormulaStatus] = useState<'draft' | 'completed'>('draft')
+  const [formulaVersion, setFormulaVersion] = useState<number | null>(null)
+  const [formulaCode, setFormulaCode] = useState<string | null>(null)
+  const [finalVersionId, setFinalVersionId] = useState<string | null>(null)
+  // Formule source quand on prépare une nouvelle version (envoyée à la première sauvegarde).
+  const [versionOfId, setVersionOfId] = useState<string | null>(null)
   const [finalizeStatus, setFinalizeStatus] = useState<SaveStatus>('idle')
   const [finalizeError, setFinalizeError] = useState<string | null>(null)
   const [loadStatus, setLoadStatus] = useState<SaveStatus>('idle')
@@ -194,6 +201,36 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const isLocked = formulaStatus === 'completed'
+
+  // Fingerprint of everything persistFormula sends; compared against the last
+  // loaded/saved one to detect unsaved edits.
+  const signature = useMemo(
+    () =>
+      JSON.stringify({
+        formulaName,
+        totalVolumeMl,
+        projectId,
+        favorites: favorites.map((m) => m.id),
+        facets,
+        manualMl,
+      }),
+    [formulaName, totalVolumeMl, projectId, favorites, facets, manualMl],
+  )
+  const [savedSignature, setSavedSignature] = useState<string | null>(null)
+  // Set after a load/save: the next render's signature becomes the baseline,
+  // once all the batched state updates have landed.
+  const [captureBaseline, setCaptureBaseline] = useState(false)
+
+  useEffect(() => {
+    if (!captureBaseline) return
+    setSavedSignature(signature)
+    setCaptureBaseline(false)
+  }, [captureBaseline, signature])
+
+  const hasUnsavedChanges =
+    !isLocked &&
+    favorites.length > 0 &&
+    (formulaId === null || (!captureBaseline && signature !== savedSignature))
 
   const baselineFacets = useMemo(() => catalogAverageFacets(catalog), [catalog])
   const adjustments = useMemo(
@@ -285,6 +322,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
   function updateFormulaName(name: string) {
     if (!isLocked) setFormulaName(name)
   }
+
 
   function applyAiChanges(changes: FormulaChange[]) {
     if (isLocked) return
@@ -408,6 +446,8 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
     const payload = {
       name: formulaName,
+      // Envoyée seulement à la création : ensuite elle a son propre enregistrement immédiat.
+      ...(formulaId ? {} : { description: formulaDescription.trim() || null }),
       facets,
       adjustments,
       totalVolumeMl,
@@ -417,9 +457,16 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
     const saved = formulaId
       ? await updateFormula(formulaId, payload)
-      : await createFormula({ ...payload, status: 'draft' as const })
+      : await createFormula({
+          ...payload,
+          status: 'draft' as const,
+          ...(versionOfId ? { versionOfId } : {}),
+        })
 
     setFormulaId(saved.id)
+    setFormulaVersion(saved.version)
+    setFormulaCode(saved.code)
+    setVersionOfId(null)
     setFormulaOrigin(originOf(saved))
     setFormulaStatus(saved.status ?? 'draft')
     return saved
@@ -431,10 +478,13 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
     try {
       await persistFormula()
+      setSavedSignature(signature)
       setSaveStatus('success')
+      return true
     } catch (err) {
       setSaveStatus('error')
       setSaveError(err instanceof Error ? err.message : 'Erreur inconnue')
+      return false
     }
   }
 
@@ -494,9 +544,15 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       // comparing against them below keeps the saved quantities exact.
       const loadedAdjustments = adjustmentsFromFacets(loadedFacets, baselineFacets)
       setFormulaId(detail.id)
+      setFormulaVersion(detail.version)
+      setFormulaCode(detail.code)
+      setFinalVersionId(detail.finalVersionId)
+      setVersionOfId(null)
+      setCaptureBaseline(true)
       setFormulaOrigin(originOf(detail))
       setFormulaStatus(detail.status)
       setFormulaName(detail.name)
+      setFormulaDescription(detail.description ?? '')
       setTotalVolumeMlState(volume)
       setFacets(loadedFacets)
       setFacetsTouched(true)
@@ -532,7 +588,14 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       setFormulaId(null)
       setFormulaOrigin(null)
       setFormulaStatus('draft')
-      setFormulaName(nextVersionedName(detail.name))
+      // Le numéro de version est géré par le serveur : on garde le nom de la formule.
+      setFormulaName(detail.name)
+      setFormulaDescription(detail.description ?? '')
+      setVersionOfId(detail.id)
+      setFinalVersionId(detail.finalVersionId)
+      setFormulaVersion(null)
+    setFormulaCode(null)
+      setFormulaCode(null)
       setTotalVolumeMlState(volume)
       setFacets(loadedFacets)
       setFacetsTouched(true)
@@ -577,6 +640,10 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
 
   function startNewFormula() {
     setFormulaId(null)
+    setFormulaVersion(null)
+    setFormulaCode(null)
+    setVersionOfId(null)
+    setFinalVersionId(null)
     setFormulaOrigin(null)
     setFormulaStatus('draft')
     setSaveStatus('idle')
@@ -586,6 +653,7 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
     setConvertStatus('idle')
     setConvertError(null)
     setFormulaName(DEFAULT_FORMULA_NAME)
+    setFormulaDescription('')
     setTotalVolumeMlState(DEFAULT_TOTAL_VOLUME_ML)
     setManualMl(null)
     setFavorites([])
@@ -629,15 +697,21 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       setManualMl: updateManualMl,
       formulaName,
       setFormulaName: updateFormulaName,
+      formulaDescription,
+      setFormulaDescription,
       applyAiChanges,
       totalVolumeMl,
       setTotalVolumeMl: updateTotalVolumeMl,
       saveStatus,
       saveError,
       saveFormula,
+      hasUnsavedChanges,
       formulaId,
       formulaOrigin,
       formulaStatus,
+      formulaVersion,
+      formulaCode,
+      finalVersionId,
       isLocked,
       finalizeStatus,
       finalizeError,
@@ -667,12 +741,17 @@ export function FormulaProvider({ children }: { children: ReactNode }) {
       adjustments,
       manualMl,
       formulaName,
+      formulaDescription,
       totalVolumeMl,
       saveStatus,
       saveError,
+      hasUnsavedChanges,
       formulaId,
       formulaOrigin,
       formulaStatus,
+      formulaVersion,
+      formulaCode,
+      finalVersionId,
       isLocked,
       finalizeStatus,
       finalizeError,
