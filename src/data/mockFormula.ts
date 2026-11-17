@@ -23,4 +23,5 @@ export const navItems = [
   { key: 'library', label: 'Bibliothèque olfactive' },
   { key: 'export', label: 'Export & documentation' },
   { key: 'team', label: 'Équipe' },
+  { key: 'api', label: 'API & documentation' },
 ]

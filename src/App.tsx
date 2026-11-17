@@ -10,6 +10,7 @@ import RegulationsPage from './pages/RegulationsPage'
 import StabilityPage from './pages/StabilityPage'
 import LibraryPage from './pages/LibraryPage'
 import TeamPage from './pages/TeamPage'
+import ApiPage from './pages/ApiPage'
 import FormulationRequestsPage from './pages/FormulationRequestsPage'
 import FormulaLineagePage from './pages/FormulaLineagePage'
 import { countPendingRequests } from './data/formulationRequestsApi'
@@ -180,6 +181,8 @@ function AppContent() {
         return <MaterialsLibrary onGoToFormula={handleGoToFormula} />
       case 'team':
         return <TeamPage />
+      case 'api':
+        return <ApiPage />
       case 'regulation':
         return <RegulationsPage />
       case 'tests':

@@ -67,6 +67,8 @@ export default function FormulaAssistant({ visible, tabs, onClose }: FormulaAssi
     totalVolumeMl,
     manualMl,
     formulaName,
+    formulaId,
+    formulaDescription,
     applyAiChanges,
   } = useFormula()
 
@@ -117,7 +119,9 @@ export default function FormulaAssistant({ visible, tabs, onClose }: FormulaAssi
       totalVolumeMl,
     )
     return {
+      formulaId: formulaId ?? null,
       name: formulaName,
+      description: formulaDescription.trim() || null,
       totalVolumeMl,
       facets,
       adjustments,

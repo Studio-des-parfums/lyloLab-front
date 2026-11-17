@@ -9,6 +9,7 @@ import {
   FileText,
   Users,
   UserCog,
+  Plug,
 } from 'lucide-react'
 import { navItems } from '../data/mockFormula'
 import './Sidebar.css'
@@ -24,6 +25,7 @@ const icons: Record<string, React.ReactNode> = {
   library: <BookOpen size={18} />,
   export: <FileText size={18} />,
   team: <UserCog size={18} />,
+  api: <Plug size={18} />,
 }
 
 interface SidebarProps {
