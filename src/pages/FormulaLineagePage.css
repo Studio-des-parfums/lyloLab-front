@@ -1,0 +1,30 @@
+.lineage-page { padding: 2.5rem 2rem 4rem; max-width: 1050px; margin: 0 auto; }
+.lineage-page-back { display: inline-flex; align-items: center; gap: 0.35rem; border: none; background: none; color: #8a8373; font-size: 0.85rem; cursor: pointer; padding: 0; margin-bottom: 1rem; }
+.lineage-page-back:hover { color: #2b2a28; }
+.lineage-page-status { color: #8a8373; font-size: 0.9rem; }
+.lineage-page-status.error { color: #b23b3b; }
+.lineage-page-header h1 { font-family: 'Georgia', serif; font-size: 1.75rem; color: #2b2a28; margin: 0 0 0.4rem; }
+.lineage-page-header p { margin: 0 0 1.5rem; font-size: 0.88rem; color: #8a8373; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.lineage-page-prefix { background: #f5f2ea; border-radius: 6px; padding: 0.1rem 0.45rem; font-size: 0.82rem; color: #2b2a28; }
+.lineage-page-card { margin-bottom: 1.75rem; }
+.lineage-page-section { margin-bottom: 1.75rem; }
+.lineage-page-section h2 { font-family: 'Georgia', serif; font-size: 1.15rem; color: #2b2a28; margin: 0 0 0.75rem; }
+.lineage-page-versions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.lineage-page-version {
+  background: #fff; border: 1px solid #ece7dc; border-radius: 12px; padding: 0.75rem 0.9rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; scroll-margin: 80px;
+}
+.lineage-page-version.final { border-color: #9fcfae; background: #f6fbf7; }
+.lineage-page-version.selected { box-shadow: 0 0 0 2px #c9a24a; }
+.lpv-main { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; min-width: 0; }
+.lpv-meta { font-size: 0.78rem; color: #8a8373; }
+.lpv-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+@media (max-width: 640px) {
+  .lineage-page { padding: 1.5rem 1rem 3rem; }
+}
+
+.lineage-dates { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: #fff; border: 1px solid #ece7dc; border-radius: 12px; padding: 0.6rem 0.9rem; font-size: 0.88rem; color: #5a5548; }
+.lineage-dates strong { color: #2b2a28; font-weight: 600; }
+.lineage-dates-icon { color: #c9a24a; }
+.lineage-dates label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+.lineage-dates input { border: 1px solid #ece7dc; border-radius: 8px; padding: 0.3rem 0.5rem; font: inherit; font-size: 0.85rem; }

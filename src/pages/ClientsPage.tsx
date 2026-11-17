@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Beaker, Briefcase, Copy, Plus } from 'lucide-react'
+import { ArrowLeft, Briefcase, Plus } from 'lucide-react'
 import {
   getClient,
   getClientDisplayName,
@@ -11,14 +11,14 @@ import {
   type ProjectDetail,
 } from '../data/clientsApi'
 import { useFormula } from '../context/FormulaContext'
-import { formulaAuthor } from '../data/formulasApi'
+import FormulaLineageTable from '../components/FormulaLineageTable'
+import { countLineages } from '../data/formulasApi'
 import './ProjectsPage.css'
 import './ClientsPage.css'
 
 interface ClientsPageProps {
-  onViewFormula: (id: string, projectId: string) => void
+  onOpenLineage: (id: string, projectId: string) => void
   onCreateFormula: (projectId: string) => void
-  onDuplicateFormula: (id: string, projectId: string) => void
   openProjectId?: string | null
 }
 
@@ -28,9 +28,8 @@ type View =
   | { name: 'project'; projectId: string }
 
 export default function ClientsPage({
-  onViewFormula,
+  onOpenLineage,
   onCreateFormula,
-  onDuplicateFormula,
   openProjectId,
 }: ClientsPageProps) {
   const [view, setView] = useState<View>(
@@ -56,9 +55,8 @@ export default function ClientsPage({
       <ProjectDetailView
         projectId={view.projectId}
         onBack={(clientId) => setView({ name: 'client', clientId })}
-        onViewFormula={onViewFormula}
+        onOpenLineage={onOpenLineage}
         onCreateFormula={onCreateFormula}
-        onDuplicateFormula={onDuplicateFormula}
       />
     )
   }
@@ -77,8 +75,6 @@ const EMPTY_CLIENT_FORM = {
 const EMPTY_PROJECT_FORM = {
   name: '',
   description: '',
-  startDate: '',
-  endDate: '',
 }
 
 function ClientsList({ onOpenClient }: { onOpenClient: (clientId: string) => void }) {
@@ -340,8 +336,6 @@ function ClientDetail({
         {
           name: projectForm.name.trim(),
           description: projectForm.description.trim() || undefined,
-          startDate: projectForm.startDate || undefined,
-          endDate: projectForm.endDate || undefined,
         },
         clientId,
       )
@@ -486,22 +480,6 @@ function ClientDetail({
                 onChange={(e) => setProjectForm((f) => ({ ...f, description: e.target.value }))}
               />
             </label>
-            <label>
-              Date de début
-              <input
-                type="date"
-                value={projectForm.startDate}
-                onChange={(e) => setProjectForm((f) => ({ ...f, startDate: e.target.value }))}
-              />
-            </label>
-            <label>
-              Date de fin
-              <input
-                type="date"
-                value={projectForm.endDate}
-                onChange={(e) => setProjectForm((f) => ({ ...f, endDate: e.target.value }))}
-              />
-            </label>
             <div className="client-detail-form-actions">
               <button
                 type="button"
@@ -552,21 +530,19 @@ function ClientDetail({
 function ProjectDetailView({
   projectId,
   onBack,
-  onViewFormula,
+  onOpenLineage,
   onCreateFormula,
-  onDuplicateFormula,
 }: {
   projectId: string
   onBack: (clientId: string) => void
-  onViewFormula: (id: string, projectId: string) => void
+  onOpenLineage: (id: string, projectId: string) => void
   onCreateFormula: (projectId: string) => void
-  onDuplicateFormula: (id: string, projectId: string) => void
 }) {
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ description: '', startDate: '', endDate: '' })
+  const [form, setForm] = useState({ description: '' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -581,8 +557,6 @@ function ProjectDetailView({
         setProject(p)
         setForm({
           description: p.description ?? '',
-          startDate: p.startDate ? p.startDate.slice(0, 10) : '',
-          endDate: p.endDate ? p.endDate.slice(0, 10) : '',
         })
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Erreur inconnue'))
@@ -594,8 +568,6 @@ function ProjectDetailView({
     try {
       const updated = await updateProject(projectId, {
         description: form.description,
-        startDate: form.startDate || null,
-        endDate: form.endDate || null,
       })
       setProject(updated)
       setEditing(false)
@@ -639,22 +611,6 @@ function ProjectDetailView({
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </label>
-          <label>
-            Date de début
-            <input
-              type="date"
-              value={form.startDate}
-              onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
-            />
-          </label>
-          <label>
-            Date de fin
-            <input
-              type="date"
-              value={form.endDate}
-              onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-            />
-          </label>
           <div className="client-detail-form-actions">
             <button type="button" className="btn btn-primary" disabled={saving} onClick={handleSave}>
               Enregistrer
@@ -670,20 +626,12 @@ function ProjectDetailView({
             <dt>Description</dt>
             <dd>{project.description || '—'}</dd>
           </div>
-          <div>
-            <dt>Début</dt>
-            <dd>{project.startDate ? new Date(project.startDate).toLocaleDateString() : '—'}</dd>
-          </div>
-          <div>
-            <dt>Fin</dt>
-            <dd>{project.endDate ? new Date(project.endDate).toLocaleDateString() : '—'}</dd>
-          </div>
         </dl>
       )}
 
       <div className="client-detail-projects">
         <div className="clients-header">
-          <h2>Formules ({project.formulas.length})</h2>
+          <h2>Formules ({countLineages(project.formulas)})</h2>
           <button
             type="button"
             className="btn btn-primary"
@@ -695,50 +643,11 @@ function ProjectDetailView({
         {project.formulas.length === 0 ? (
           <p className="clients-empty">Aucune formule associée à ce projet.</p>
         ) : (
-          <table className="projects-table">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Statut</th>
-                <th>Créée par</th>
-                <th>Date</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {project.formulas.map((f) => (
-                <tr key={f.id} onClick={() => onViewFormula(f.id, projectId)}>
-                  <td>
-                    <span className="projects-table-name">{f.name}</span>
-                    {f.materializedAs && (
-                      <span className="project-card-tag">
-                        <Beaker size={11} /> Transformée en matière première
-                      </span>
-                    )}
-                  </td>
-                  <td>{f.status === 'completed' ? 'Finalisée' : 'Brouillon'}</td>
-                  <td className="projects-table-author">{formulaAuthor(f) ?? '—'}</td>
-                  <td className="projects-table-date">
-                    {new Date(f.createdAt).toLocaleDateString()}
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="project-card-delete"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDuplicateFormula(f.id, projectId)
-                      }}
-                      aria-label="Dupliquer en nouvelle version"
-                      title="Dupliquer en nouvelle version"
-                    >
-                      <Copy size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <FormulaLineageTable
+            formulas={project.formulas}
+            showStatus
+            onOpenFormula={(id) => onOpenLineage(id, projectId)}
+          />
         )}
       </div>
     </div>

@@ -1,6 +1,8 @@
 import { ArrowLeft, Save, CheckCircle2, FlaskConical, Copy, Lock } from 'lucide-react'
 import { useFormula } from '../context/FormulaContext'
 import FormulaNameEditor from '../components/FormulaNameEditor'
+import FormulaDescriptionEditor from '../components/FormulaDescriptionEditor'
+import FormulaNotes from '../components/FormulaNotes'
 import FormulaVolumeInput from '../components/FormulaVolumeInput'
 import ClientProjectPicker from '../components/ClientProjectPicker'
 import OlfactiveRadar from '../components/OlfactiveRadar'
@@ -11,7 +13,7 @@ import ComplianceReport from '../components/ComplianceReport'
 import StabilityCard from '../components/StabilityCard'
 import QuickAdjustments from '../components/QuickAdjustments'
 import FavoriteMaterials from '../components/FavoriteMaterials'
-import FormulaAssistant from '../components/FormulaAssistant'
+import FormulaBubble from '../components/FormulaBubble'
 import './FormulaBuilder.css'
 
 interface FormulaBuilderProps {
@@ -68,6 +70,8 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
             <ArrowLeft size={16} /> Retour
           </button>
           <FormulaNameEditor />
+          <FormulaDescriptionEditor />
+          <FormulaNotes />
           {formulaOrigin && (
             <p className="dashboard-origin">
               Créée{formulaOrigin.author ? ` par ${formulaOrigin.author}` : ''} le{' '}
@@ -167,7 +171,7 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
       </div>
 
       <div className="dashboard-grid">
-        <section className="card card-radar card-wide">
+        <section className="card card-radar">
           <h2 className="card-title">Les 24 facettes de la parfumerie</h2>
           <p className="card-subtitle">
             Ajustez les curseurs pour définir la personnalité olfactive de votre création.
@@ -177,23 +181,23 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
 
         <section className="card-stack">
           <div className="card">
-            <OlfactiveRendering />
+            <FormulaTable />
           </div>
           <div className="card">
             <QuickAdjustments />
           </div>
         </section>
 
+        <section className="card card-wide">
+          <FavoriteMaterials />
+        </section>
+
         <section className="card">
-          <FormulaTable />
+          <OlfactiveRendering />
         </section>
 
         <section className="card">
           <OlfactivePyramid />
-        </section>
-
-        <section className="card card-wide">
-          <FavoriteMaterials />
         </section>
 
         <section className="card card-wide">
@@ -205,7 +209,7 @@ export default function FormulaBuilder({ onBack }: FormulaBuilderProps) {
         </section>
       </div>
 
-      {!isLocked && <FormulaAssistant />}
+      <FormulaBubble />
     </div>
   )
 }

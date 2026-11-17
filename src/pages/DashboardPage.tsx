@@ -10,6 +10,7 @@ import {
   Plus,
   RefreshCw,
   ShieldAlert,
+  TestTubeDiagonal,
   TrendingUp,
 } from 'lucide-react'
 import {
@@ -20,13 +21,23 @@ import {
   type StockAlertLevel,
 } from '../data/dashboardApi'
 import { formatGrams } from '../data/materials'
+import {
+  getStabilityCatalog,
+  getStabilityOverview,
+  type DueCheckpoint,
+  type StabilityCatalog,
+  type StabilityOverview,
+} from '../data/stabilityApi'
 import './DashboardPage.css'
 
 interface DashboardPageProps {
   onOpenFormula: (id: string, projectId: string | null) => void
-  onOpenProject: (projectId: string) => void
+  /** Page d'une formule (arbre des versions). */
+  onOpenLineage: (formulaId: string, projectId: string | null) => void
   onNewFormula: () => void
   onOpenMaterials: () => void
+  onOpenStabilityTest: (testId: string) => void
+  onOpenStability: () => void
 }
 
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -87,15 +98,20 @@ function Card({
 
 export default function DashboardPage({
   onOpenFormula,
-  onOpenProject,
+  onOpenLineage,
   onNewFormula,
   onOpenMaterials,
+  onOpenStabilityTest,
+  onOpenStability,
 }: DashboardPageProps) {
   const [data, setData] = useState<DashboardOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [reloadKey, setReloadKey] = useState(0)
+
   function load() {
+    setReloadKey((k) => k + 1)
     setLoading(true)
     setError(null)
     fetchDashboard()
@@ -128,7 +144,7 @@ export default function DashboardPage({
             <RefreshCw size={16} />
           </button>
           <button type="button" className="btn btn-primary" onClick={onNewFormula}>
-            <Plus size={16} /> Nouvelle formule
+            <Plus size={16} />
           </button>
         </div>
       </div>
@@ -180,25 +196,30 @@ export default function DashboardPage({
           </div>
 
           <div className="home-grid">
+            <StabilityCard key={reloadKey} onOpenTest={onOpenStabilityTest} onOpenAll={onOpenStability} />
+
             {/* 2. Deadlines */}
-            <Card title="Échéances projets" icon={<CalendarClock size={16} />}>
+            <Card title="Échéances formules" icon={<CalendarClock size={16} />}>
               {data.deadlines.length === 0 ? (
                 <p className="home-empty">Aucune échéance dans les 30 prochains jours.</p>
               ) : (
                 <ul className="home-list">
                   {data.deadlines.map((deadline) => (
-                    <li key={deadline.projectId}>
+                    <li key={deadline.formulaId}>
                       <button
                         type="button"
                         className="home-row"
-                        onClick={() => onOpenProject(deadline.projectId)}
+                        onClick={() => onOpenLineage(deadline.formulaId, deadline.projectId)}
                       >
                         <span className="home-row-main">
-                          <span className="home-row-title">{deadline.projectName}</span>
+                          <span className="home-row-title">{deadline.formulaName}</span>
                           <span className="home-row-meta">
-                            {deadline.clientName} · {dateFormat.format(new Date(deadline.endDate))} ·{' '}
-                            {plural(deadline.draftCount, 'brouillon')},{' '}
-                            {plural(deadline.completedCount, 'finalisée')}
+                            {deadline.projectName
+                              ? `${deadline.clientName ? `${deadline.clientName} — ` : ''}${deadline.projectName} · `
+                              : ''}
+                            {dateFormat.format(new Date(deadline.endDate))} ·{' '}
+                            {plural(deadline.versionCount, 'version')}
+                            {deadline.hasFinal ? ' · version finale choisie' : ''}
                           </span>
                         </span>
                         <span
@@ -412,5 +433,119 @@ function TopMaterialsChart({ materials }: { materials: DashboardOverview['topMat
         <Beaker size={12} /> Nombre de formules contenant la matière
       </li>
     </ul>
+  )
+}
+
+// ── Stability checkpoints ───────────────────────────────────────────────
+
+const MAX_STABILITY_ROWS = 8
+
+function stabilityLabel(c: DueCheckpoint): string {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const [y, m, d] = c.dueDate.slice(0, 10).split('-').map(Number)
+  const days = Math.round((new Date(y, m - 1, d).getTime() - today.getTime()) / 86_400_000)
+  if (days < 0) return `En retard de ${plural(-days, 'jour')}`
+  if (days === 0) return "Aujourd'hui"
+  if (days === 1) return 'Demain'
+  return `Dans ${plural(days, 'jour')}`
+}
+
+function conditionLabel(catalog: StabilityCatalog | null, c: DueCheckpoint): string {
+  const base = catalog?.conditions.find((x) => x.code === c.condition)?.label ?? c.condition
+  if (c.condition === 'other' && c.conditionLabel) return c.conditionLabel
+  return c.conditionLabel ? `${base} — ${c.conditionLabel}` : base
+}
+
+/** Overdue, today's and next 7 days' stability checkpoints. */
+function StabilityCard({
+  onOpenTest,
+  onOpenAll,
+}: {
+  onOpenTest: (testId: string) => void
+  onOpenAll: () => void
+}) {
+  const [overview, setOverview] = useState<StabilityOverview | null>(null)
+  const [catalog, setCatalog] = useState<StabilityCatalog | null>(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    getStabilityOverview()
+      .then(setOverview)
+      .catch(() => setError(true))
+    getStabilityCatalog()
+      .then(setCatalog)
+      .catch(() => setCatalog(null))
+  }, [])
+
+  const due = overview?.due ?? []
+  const overdue = due.filter((c) => c.state === 'overdue').length
+  const todayCount = due.filter((c) => c.state === 'today').length
+  const upcoming = due.length - overdue - todayCount
+
+  return (
+    <Card
+      title="Contrôles de stabilité"
+      icon={<TestTubeDiagonal size={16} />}
+      action={
+        <button type="button" className="home-link" onClick={onOpenAll}>
+          Tests & stabilité <ChevronRight size={14} />
+        </button>
+      }
+    >
+      {error ? (
+        <p className="home-empty">Impossible de charger les contrôles.</p>
+      ) : !overview ? (
+        <p className="home-empty">Chargement...</p>
+      ) : due.length === 0 ? (
+        <p className="home-empty">Aucun contrôle en retard ni prévu dans les 7 prochains jours.</p>
+      ) : (
+        <>
+          <div className="home-stability-counts">
+            <span className={`home-badge ${overdue ? 'home-badge-violation' : 'home-badge-neutral'}`}>
+              {overdue > 0 && <AlertTriangle size={12} />}
+              {plural(overdue, 'en retard', 'en retard')}
+            </span>
+            <span className={`home-badge ${todayCount ? 'home-badge-warning' : 'home-badge-neutral'}`}>
+              {todayCount} aujourd'hui
+            </span>
+            <span className="home-badge home-badge-neutral">{plural(upcoming, 'à venir', 'à venir')}</span>
+          </div>
+          <ul className="home-list">
+            {due.slice(0, MAX_STABILITY_ROWS).map((c) => (
+              <li key={`${c.testId}-${c.day}`}>
+                <button type="button" className="home-row" onClick={() => onOpenTest(c.testId)}>
+                  <span className="home-row-main">
+                    <span className="home-row-title">{c.formula.name}</span>
+                    <span className="home-row-meta">
+                      {conditionLabel(catalog, c)} · contrôle J+{c.day} ·{' '}
+                      {dateFormat.format(new Date(c.dueDate))}
+                    </span>
+                  </span>
+                  <span
+                    className={`home-badge ${
+                      c.state === 'overdue'
+                        ? 'home-badge-violation'
+                        : c.state === 'today'
+                          ? 'home-badge-warning'
+                          : 'home-badge-neutral'
+                    }`}
+                  >
+                    {c.state === 'overdue' && <AlertTriangle size={12} />}
+                    {stabilityLabel(c)}
+                  </span>
+                  <ChevronRight size={16} className="home-row-chevron" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          {due.length > MAX_STABILITY_ROWS && (
+            <p className="home-more">
+              + {plural(due.length - MAX_STABILITY_ROWS, 'autre contrôle', 'autres contrôles')}
+            </p>
+          )}
+        </>
+      )}
+    </Card>
   )
 }

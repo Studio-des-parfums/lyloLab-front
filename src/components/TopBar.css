@@ -83,3 +83,35 @@
   border-color: #c9a24a;
   color: #c9a24a;
 }
+
+.topbar-bell {
+  position: relative; border: none; background: none; color: #8a8373; width: 34px; height: 34px;
+  border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.topbar-bell:hover { background: #f5f2ea; color: #2b2a28; }
+.topbar-bell-count {
+  position: absolute; top: 2px; right: 0; background: #b23b3b; color: #fff; border-radius: 999px;
+  font-size: 0.62rem; font-weight: 700; min-width: 16px; height: 16px; padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.bell { position: relative; }
+.bell-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 340px; max-width: calc(100vw - 32px);
+  max-height: 70vh; overflow: auto; background: #fff; border: 1px solid #ece7dc; border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15); padding: 0.4rem;
+}
+.bell-header { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.5rem 0.5rem; font-size: 0.88rem; color: #2b2a28; }
+.bell-read-all { border: none; background: none; color: #c9a24a; font-size: 0.76rem; cursor: pointer; }
+.bell-item {
+  width: 100%; display: flex; gap: 0.6rem; align-items: flex-start; text-align: left; border: none; background: none;
+  border-radius: 8px; padding: 0.55rem 0.5rem; cursor: pointer; font: inherit; font-size: 0.82rem; color: #5a5548;
+}
+.bell-item:hover { background: #f5f2ea; }
+.bell-item-unread { background: #fffaf0; }
+.bell-icon { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #f7ecd2; color: #8a6a1f; display: inline-flex; align-items: center; justify-content: center; }
+.bell-text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.bell-text strong { color: #2b2a28; }
+.bell-excerpt { color: #8a8373; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.bell-time { font-size: 0.7rem; color: #a59f90; }
+.bell-empty { color: #8a8373; font-size: 0.82rem; text-align: center; margin: 1rem 0; }

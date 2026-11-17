@@ -1,8 +1,15 @@
 import { LogOut, Search } from 'lucide-react'
+import NotificationBell from './NotificationBell'
 import { useAuth } from '../context/AuthContext'
 import './TopBar.css'
 
-export default function TopBar() {
+interface TopBarProps {
+  pendingRequests: number
+  onOpenRequests: () => void
+  onOpenFormula: (formulaId: string, projectId: string | null) => void
+}
+
+export default function TopBar({ pendingRequests, onOpenRequests, onOpenFormula }: TopBarProps) {
   const { user, logout } = useAuth()
 
   return (
@@ -16,6 +23,11 @@ export default function TopBar() {
       </div>
       {user && (
         <div className="topbar-user">
+          <NotificationBell
+            pendingRequests={pendingRequests}
+            onOpenRequests={onOpenRequests}
+            onOpenFormula={onOpenFormula}
+          />
           <span className="topbar-user-text">
             <span className="topbar-user-name">{user.name}</span>
             <span className="topbar-user-team">{user.team.name}</span>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Check, Loader2, Mic, Minus, Send, Sparkles, Square, X } from 'lucide-react'
 import { useVoiceRecorder, voiceInputSupported } from '../hooks/useVoiceRecorder'
 import { useFormula } from '../context/FormulaContext'
@@ -50,7 +50,15 @@ function toPayload(entries: ChatEntry[]): ChatMessagePayload[] {
   }))
 }
 
-export default function FormulaAssistant() {
+interface FormulaAssistantProps {
+  /** Onglet actif dans la bulle : la conversation reste en mémoire quand il est masqué. */
+  visible: boolean
+  /** Onglets de la bulle (IA / équipe), affichés sous l'en-tête. */
+  tabs: ReactNode
+  onClose: () => void
+}
+
+export default function FormulaAssistant({ visible, tabs, onClose }: FormulaAssistantProps) {
   const {
     favorites,
     facets,
@@ -62,7 +70,7 @@ export default function FormulaAssistant() {
     applyAiChanges,
   } = useFormula()
 
-  const [open, setOpen] = useState(false)
+  const open = visible
   const [entries, setEntries] = useState<ChatEntry[]>([])
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
@@ -192,19 +200,7 @@ export default function FormulaAssistant() {
     setEntries((prev) => prev.map((e) => (e.id === entry.id ? { ...e, decision } : e)))
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className="assistant-launcher"
-        onClick={() => setOpen(true)}
-        aria-label="Ouvrir l'assistant de formulation"
-        title="Assistant de formulation"
-      >
-        <Sparkles size={24} />
-      </button>
-    )
-  }
+  if (!open) return null
 
   return (
     <div className="assistant-panel" role="dialog" aria-label="Assistant de formulation">
@@ -229,12 +225,14 @@ export default function FormulaAssistant() {
         <button
           type="button"
           className="assistant-icon-btn"
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           aria-label="Réduire"
         >
           <Minus size={16} />
         </button>
       </div>
+
+      {tabs}
 
       <div className="assistant-messages" ref={listRef}>
         <div className="assistant-bubble assistant-bubble-ai">{WELCOME}</div>

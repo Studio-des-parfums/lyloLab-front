@@ -5,8 +5,14 @@ export interface ProjectFormulaSummary extends FormulaAuthorInfo {
   id: string
   name: string
   status: 'draft' | 'completed'
+  version: number
+  code: string | null
+  rootFormulaId: string | null
+  finalVersionId: string | null
+  description: string | null
   createdAt: string
   materializedAs: { id: string } | null
+  _count?: { notes: number }
 }
 
 export interface Project {
@@ -14,8 +20,6 @@ export interface Project {
   name: string
   clientId: string
   description: string | null
-  startDate: string | null
-  endDate: string | null
   createdAt: string
 }
 
@@ -52,8 +56,6 @@ export interface UpdateClientPayload {
 export interface UpdateProjectPayload {
   name?: string
   description?: string
-  startDate?: string | null
-  endDate?: string | null
 }
 
 export async function listClients(): Promise<Client[]> {
@@ -112,8 +114,6 @@ export interface CreateProjectPayload {
   name: string
   clientId: string
   description?: string
-  startDate?: string
-  endDate?: string
 }
 
 export async function createProject(payload: CreateProjectPayload): Promise<Project> {
